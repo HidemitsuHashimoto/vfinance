@@ -17,8 +17,11 @@ todos:
   - id: phase-4-backup
     content: "Fase 4: TDD JSON por ano, round-trip, política apagar ano + inserir; UI SAF quando aplicável"
     status: pending
-  - id: phase-5-voice
-    content: "Fase 5: TDD parser voz PT-BR; STT como integração"
+  - id: phase-5-frontend
+    content: "Fase 5: UI Flutter (temas, navegação, contas, transações, fatura/saldo); widget tests só onde agregam valor"
+    status: pending
+  - id: phase-6-voice
+    content: "Fase 6: TDD parser voz PT-BR; STT como integração"
     status: pending
 isProject: false
 ---
@@ -138,14 +141,29 @@ flowchart TB
 
 ---
 
-## Fase 5 — Entrada por voz (roadmap “Fase 5”)
+## Fase 5 — Frontend (interface Flutter)
+
+**Objetivo:** Entregar telas utilizáveis offline-first sobre o domínio e os repositórios já existentes: navegação clara, listagens e formulários mínimos, valores sempre exibidos a partir de centavos (formatação BR), e feedback de erro carregável. TDD permanece **focado em regras**; UI usa principalmente testes de widget **pontuais** onde reduzem regressão (ex.: um fluxo crítico de salvar transação).
+
+| História | Tarefas | Validação |
+|----------|---------|-----------|
+| **H5.1** Como utilizador, quero ver contas e saldos, para acompanhar o dinheiro nas contas correntes. | **T5.1** Tema centralizado (`ThemeData` / tokens); **T5.2** Lista de contas + detalhe com saldo formatado; integração com repositório/stream Drift. | Critérios de aceite manuais + analyzer limpo; widget test opcional no fluxo “lista vazia → uma conta”. |
+| **H5.2** Como utilizador, quero registar receitas e despesas, para atualizar o histórico e o saldo. | **T5.3** Ecrã de nova transação: tipo, meio de pagamento, conta, valor (entrada BR → centavos via domínio), data; lista filtrada por conta/ período simples. | Despesa em débito altera saldo visualmente; crédito não altera saldo de conta (alinhado Fase 1). |
+| **H5.3** Como utilizador do cartão, quero ver fatura e saldo total, para fechar o ciclo mental “quanto devo no cartão”. | **T5.4** Lista de faturas por cartão; destaque total / ajustado; saldo total na shell ou dashboard usando regra já testada no domínio. | Smoke manual com 2+ faturas abertas; sem duplicar testes de `invoice_rules` na UI. |
+| **H5.4** Como utilizador, quero navegar sem perder contexto, para usar o app no dia a dia. | **T5.5** `go_router` (ou equivalente já adotado no repo): rotas para contas, transações, cartão/fatura; estados de loading/erro em chamadas ao repositório. | Deep link básico se aplicável à plataforma alvo. |
+
+**Entrega:** `lib/` presentation (widgets, rotas) consumindo casos de uso ou repositórios; sem `double` no modelo apresentado para valores persistidos.
+
+---
+
+## Fase 6 — Entrada por voz (roadmap “Fase 5” do domain.md)
 
 **Objetivo:** Speech-to-text nativo + parser; extrair valor e categoria; criar `Transaction` em centavos.
 
 | História | Tarefas (TDD) | Teste de negócio |
 |----------|---------------|------------------|
-| **H5.1** Parser de frases. | **T5.1** Função pura `parseVoiceExpense(String text)` → `{ Money? amount, String? category }` com frases exemplo PT-BR (“gastei 25 reais mercado”). | Casos de sucesso e falha; sem dependência de microfone. |
-| **H5.2** Integração STT. | Implementação com plugin/serviço; **sem** TDD pesado na plataforma — validação manual ou teste de integração mínimo se houver abstração testável. | N/A ou smoke. |
+| **H6.1** Parser de frases. | **T6.1** Função pura `parseVoiceExpense(String text)` → `{ Money? amount, String? category }` com frases exemplo PT-BR (“gastei 25 reais mercado”). | Casos de sucesso e falha; sem dependência de microfone. |
+| **H6.2** Integração STT. | Implementação com plugin/serviço; **sem** TDD pesado na plataforma — validação manual ou teste de integração mínimo se houver abstração testável. | N/A ou smoke. |
 
 ---
 
@@ -163,6 +181,8 @@ flowchart TB
 - **F1** antes de **F4** (backup precisa do modelo estável).
 - **T1.3** (saldo total) pode ser refinado quando **F2** existir, mas a assinatura já deve usar “totais de fatura aberta” com suporte a ajuste.
 - **F3** depende de **F2** (crédito/fatura) e **F0** (Money + divisão).
+- **F5** (frontend) assume **F1** e, para cartão/saldo total coerente na UI, **F2** (e **F3** se listar parcelas); pode avançar em paralelo a **F4** desde que o ecrã de backup/import não bloqueie o núcleo.
+- **F6** (voz) pode seguir **F5** para reutilizar o mesmo ecrã de confirmação de transação, mas o parser **T6.1** permanece testável sem UI.
 
 ---
 
