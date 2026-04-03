@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: phase-3-installments
     content: "Fase 3: TDD divisão em N centavos + datas mensais + ligação installmentId/cartão"
-    status: pending
+    status: completed
   - id: phase-4-backup
     content: "Fase 4: TDD JSON por ano, round-trip, política apagar ano + inserir; UI SAF quando aplicável"
-    status: pending
+    status: completed
   - id: phase-5-frontend
     content: "Fase 5: UI Flutter (temas, navegação, contas, transações, fatura/saldo); widget tests só onde agregam valor"
     status: pending
