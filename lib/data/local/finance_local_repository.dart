@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/domain/balance_rules.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
+import 'package:vfinance/domain/year_backup_filter.dart';
 import 'package:vfinance/domain/year_backup_snapshot.dart';
 
 /// Thin Drift-backed repository; balance updates use [computeBalanceAfterTransaction].
@@ -131,6 +132,62 @@ class FinanceLocalRepository {
     });
   }
 
+  /// Single shared stream per query so multiple [StreamBuilder]s (e.g. shell
+  /// tabs) do not each create a new Drift `.watch()` mapping chain.
+  late final Stream<List<Account>> _watchAccounts = (_db.select(
+        _db.accounts,
+      )..orderBy([(row) => OrderingTerm.asc(row.name)]))
+      .watch();
+
+  late final Stream<List<FinanceTransaction>> _watchFinanceTransactions =
+      (_db.select(_db.financeTransactions)
+            ..orderBy([(row) => OrderingTerm.desc(row.dateUtcMillis)]))
+          .watch();
+
+  late final Stream<List<CreditCard>> _watchCreditCards = (_db.select(
+        _db.creditCards,
+      )..orderBy([(row) => OrderingTerm.asc(row.name)]))
+      .watch();
+
+  late final Stream<List<Invoice>> _watchInvoices = (_db.select(_db.invoices)
+        ..orderBy([
+          (row) => OrderingTerm.desc(row.year),
+          (row) => OrderingTerm.desc(row.month),
+        ]))
+      .watch();
+
+  /// Emits all accounts ordered by name whenever the table changes.
+  Stream<List<Account>> watchAccounts() => _watchAccounts;
+
+  /// Emits finance transactions newest-first.
+  Stream<List<FinanceTransaction>> watchFinanceTransactions() =>
+      _watchFinanceTransactions;
+
+  /// Emits credit cards ordered by name.
+  Stream<List<CreditCard>> watchCreditCards() => _watchCreditCards;
+
+  /// Emits invoices newest by year/month.
+  Stream<List<Invoice>> watchInvoices() => _watchInvoices;
+
+  /// Builds a JSON backup snapshot for [year] (full accounts/cards + filtered
+  /// tx and invoices), matching [importYearBackupSnapshot] expectations.
+  Future<YearBackupSnapshot> buildYearBackupForCalendarYear(int year) async {
+    final List<Account> accounts = await _db.select(_db.accounts).get();
+    final List<CreditCard> cards = await _db.select(_db.creditCards).get();
+    final List<FinanceTransaction> txs = await _db
+        .select(_db.financeTransactions)
+        .get();
+    final List<Invoice> invs = await _db.select(_db.invoices).get();
+    return buildYearBackupSnapshotForYear(
+      schemaVersion: 1,
+      year: year,
+      accounts: accounts.map(_toYearBackupAccount).toList(),
+      creditCards: cards.map(_toYearBackupCreditCard).toList(),
+      financeTransactions: txs.map(_toYearBackupFinanceTransaction).toList(),
+      invoices: invs.map(_toYearBackupInvoice).toList(),
+    );
+  }
+
   /// Replaces finance transactions in [snapshot.year] and invoices with
   /// that billing year, then upserts accounts/cards and inserts rows from
   /// [snapshot] (see [domain.md] restore policy).
@@ -222,6 +279,55 @@ class FinanceLocalRepository {
       _db.invoices,
     )..where(($InvoicesTable t) => t.year.equals(year))).go();
   }
+}
+
+YearBackupAccount _toYearBackupAccount(Account row) {
+  return YearBackupAccount(
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    balanceInCents: row.balanceInCents,
+  );
+}
+
+YearBackupCreditCard _toYearBackupCreditCard(CreditCard row) {
+  return YearBackupCreditCard(
+    id: row.id,
+    name: row.name,
+    limitInCents: row.limitInCents,
+    closingDay: row.closingDay,
+    dueDay: row.dueDay,
+  );
+}
+
+YearBackupFinanceTransaction _toYearBackupFinanceTransaction(
+  FinanceTransaction row,
+) {
+  return YearBackupFinanceTransaction(
+    id: row.id,
+    amountInCents: row.amountInCents,
+    transactionTypeStorage: row.transactionType,
+    category: row.category,
+    description: row.description,
+    dateUtcMillis: row.dateUtcMillis,
+    paymentMethodStorage: row.paymentMethod,
+    accountId: row.accountId,
+    cardId: row.cardId,
+    installmentId: row.installmentId,
+  );
+}
+
+YearBackupInvoice _toYearBackupInvoice(Invoice row) {
+  return YearBackupInvoice(
+    id: row.id,
+    cardId: row.cardId,
+    month: row.month,
+    year: row.year,
+    totalInCents: row.totalInCents,
+    adjustedTotalInCents: row.adjustedTotalInCents,
+    isClosed: row.isClosed,
+    isPaid: row.isPaid,
+  );
 }
 
 Value<int?> _nullableFkCompanion(int? id) {

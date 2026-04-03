@@ -42,9 +42,7 @@ final class Money {
       throw FormatException('Invalid money string', raw);
     }
     final bool isNegative = normalized.startsWith('-');
-    final String unsigned = isNegative
-        ? normalized.substring(1)
-        : normalized;
+    final String unsigned = isNegative ? normalized.substring(1) : normalized;
     final List<String> parts = unsigned.split('.');
     final String wholePart = parts[0];
     if (wholePart.isEmpty || !_digitsOnly.hasMatch(wholePart)) {

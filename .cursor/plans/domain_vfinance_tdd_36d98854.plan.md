@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: phase-5-frontend
     content: "Fase 5: UI Flutter (temas, navegação, contas, transações, fatura/saldo); widget tests só onde agregam valor"
-    status: pending
+    status: completed
   - id: phase-6-voice
     content: "Fase 6: TDD parser voz PT-BR; STT como integração"
     status: pending
