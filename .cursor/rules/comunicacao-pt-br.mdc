@@ -1,0 +1,10 @@
+---
+description: Respostas do assistente em português brasileiro (pt-BR)
+alwaysApply: true
+---
+
+# Comunicação em português (Brasil)
+
+- Responda ao utilizador sempre em **português do Brasil (pt-BR)**: explicações, resumos, mensagens de commit sugeridas e texto de UI quando aplicável.
+- Mantenha **código, nomes de identificadores, comentários de código e documentação técnica em inglês**, em linha com as outras regras do projeto — salvo se o utilizador pedir explicitamente outro idioma.
+- Termos de API bem conhecidos (por exemplo HTTP, REST, JSON) podem permanecer como no original quando forem padrão da indústria.
