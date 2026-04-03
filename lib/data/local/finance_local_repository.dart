@@ -31,6 +31,56 @@ class FinanceLocalRepository {
     )..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
+  Future<int> insertCreditCard({
+    required String name,
+    required int limitInCents,
+    required int closingDay,
+    required int dueDay,
+  }) {
+    return _db
+        .into(_db.creditCards)
+        .insert(
+          CreditCardsCompanion.insert(
+            name: name,
+            limitInCents: limitInCents,
+            closingDay: closingDay,
+            dueDay: dueDay,
+          ),
+        );
+  }
+
+  Future<int> insertInvoice({
+    required int cardId,
+    required int month,
+    required int year,
+    required int totalInCents,
+    int? adjustedTotalInCents,
+    required bool isClosed,
+    required bool isPaid,
+  }) {
+    return _db
+        .into(_db.invoices)
+        .insert(
+          InvoicesCompanion.insert(
+            cardId: cardId,
+            month: month,
+            year: year,
+            totalInCents: totalInCents,
+            adjustedTotalInCents: adjustedTotalInCents == null
+                ? const Value.absent()
+                : Value<int?>(adjustedTotalInCents),
+            isClosed: isClosed,
+            isPaid: isPaid,
+          ),
+        );
+  }
+
+  Future<Invoice?> getInvoiceById(int id) {
+    return (_db.select(
+      _db.invoices,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+
   /// Inserts a row and updates [accountId] balance when payment is not
   /// credit and [accountId] is non-null.
   Future<int> insertFinanceTransaction({

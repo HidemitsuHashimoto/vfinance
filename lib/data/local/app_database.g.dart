@@ -935,12 +935,885 @@ class FinanceTransactionsCompanion extends UpdateCompanion<FinanceTransaction> {
   }
 }
 
+class $CreditCardsTable extends CreditCards
+    with TableInfo<$CreditCardsTable, CreditCard> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CreditCardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _limitInCentsMeta = const VerificationMeta(
+    'limitInCents',
+  );
+  @override
+  late final GeneratedColumn<int> limitInCents = GeneratedColumn<int>(
+    'limit_in_cents',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _closingDayMeta = const VerificationMeta(
+    'closingDay',
+  );
+  @override
+  late final GeneratedColumn<int> closingDay = GeneratedColumn<int>(
+    'closing_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueDayMeta = const VerificationMeta('dueDay');
+  @override
+  late final GeneratedColumn<int> dueDay = GeneratedColumn<int>(
+    'due_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    limitInCents,
+    closingDay,
+    dueDay,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'credit_cards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CreditCard> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('limit_in_cents')) {
+      context.handle(
+        _limitInCentsMeta,
+        limitInCents.isAcceptableOrUnknown(
+          data['limit_in_cents']!,
+          _limitInCentsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_limitInCentsMeta);
+    }
+    if (data.containsKey('closing_day')) {
+      context.handle(
+        _closingDayMeta,
+        closingDay.isAcceptableOrUnknown(data['closing_day']!, _closingDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_closingDayMeta);
+    }
+    if (data.containsKey('due_day')) {
+      context.handle(
+        _dueDayMeta,
+        dueDay.isAcceptableOrUnknown(data['due_day']!, _dueDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueDayMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CreditCard map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CreditCard(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      limitInCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}limit_in_cents'],
+      )!,
+      closingDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}closing_day'],
+      )!,
+      dueDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due_day'],
+      )!,
+    );
+  }
+
+  @override
+  $CreditCardsTable createAlias(String alias) {
+    return $CreditCardsTable(attachedDatabase, alias);
+  }
+}
+
+class CreditCard extends DataClass implements Insertable<CreditCard> {
+  final int id;
+  final String name;
+  final int limitInCents;
+  final int closingDay;
+  final int dueDay;
+  const CreditCard({
+    required this.id,
+    required this.name,
+    required this.limitInCents,
+    required this.closingDay,
+    required this.dueDay,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['limit_in_cents'] = Variable<int>(limitInCents);
+    map['closing_day'] = Variable<int>(closingDay);
+    map['due_day'] = Variable<int>(dueDay);
+    return map;
+  }
+
+  CreditCardsCompanion toCompanion(bool nullToAbsent) {
+    return CreditCardsCompanion(
+      id: Value(id),
+      name: Value(name),
+      limitInCents: Value(limitInCents),
+      closingDay: Value(closingDay),
+      dueDay: Value(dueDay),
+    );
+  }
+
+  factory CreditCard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CreditCard(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      limitInCents: serializer.fromJson<int>(json['limitInCents']),
+      closingDay: serializer.fromJson<int>(json['closingDay']),
+      dueDay: serializer.fromJson<int>(json['dueDay']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'limitInCents': serializer.toJson<int>(limitInCents),
+      'closingDay': serializer.toJson<int>(closingDay),
+      'dueDay': serializer.toJson<int>(dueDay),
+    };
+  }
+
+  CreditCard copyWith({
+    int? id,
+    String? name,
+    int? limitInCents,
+    int? closingDay,
+    int? dueDay,
+  }) => CreditCard(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    limitInCents: limitInCents ?? this.limitInCents,
+    closingDay: closingDay ?? this.closingDay,
+    dueDay: dueDay ?? this.dueDay,
+  );
+  CreditCard copyWithCompanion(CreditCardsCompanion data) {
+    return CreditCard(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      limitInCents: data.limitInCents.present
+          ? data.limitInCents.value
+          : this.limitInCents,
+      closingDay: data.closingDay.present
+          ? data.closingDay.value
+          : this.closingDay,
+      dueDay: data.dueDay.present ? data.dueDay.value : this.dueDay,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CreditCard(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('limitInCents: $limitInCents, ')
+          ..write('closingDay: $closingDay, ')
+          ..write('dueDay: $dueDay')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, limitInCents, closingDay, dueDay);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CreditCard &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.limitInCents == this.limitInCents &&
+          other.closingDay == this.closingDay &&
+          other.dueDay == this.dueDay);
+}
+
+class CreditCardsCompanion extends UpdateCompanion<CreditCard> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> limitInCents;
+  final Value<int> closingDay;
+  final Value<int> dueDay;
+  const CreditCardsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.limitInCents = const Value.absent(),
+    this.closingDay = const Value.absent(),
+    this.dueDay = const Value.absent(),
+  });
+  CreditCardsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required int limitInCents,
+    required int closingDay,
+    required int dueDay,
+  }) : name = Value(name),
+       limitInCents = Value(limitInCents),
+       closingDay = Value(closingDay),
+       dueDay = Value(dueDay);
+  static Insertable<CreditCard> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? limitInCents,
+    Expression<int>? closingDay,
+    Expression<int>? dueDay,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (limitInCents != null) 'limit_in_cents': limitInCents,
+      if (closingDay != null) 'closing_day': closingDay,
+      if (dueDay != null) 'due_day': dueDay,
+    });
+  }
+
+  CreditCardsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int>? limitInCents,
+    Value<int>? closingDay,
+    Value<int>? dueDay,
+  }) {
+    return CreditCardsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      limitInCents: limitInCents ?? this.limitInCents,
+      closingDay: closingDay ?? this.closingDay,
+      dueDay: dueDay ?? this.dueDay,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (limitInCents.present) {
+      map['limit_in_cents'] = Variable<int>(limitInCents.value);
+    }
+    if (closingDay.present) {
+      map['closing_day'] = Variable<int>(closingDay.value);
+    }
+    if (dueDay.present) {
+      map['due_day'] = Variable<int>(dueDay.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CreditCardsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('limitInCents: $limitInCents, ')
+          ..write('closingDay: $closingDay, ')
+          ..write('dueDay: $dueDay')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InvoicesTable extends Invoices with TableInfo<$InvoicesTable, Invoice> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvoicesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _cardIdMeta = const VerificationMeta('cardId');
+  @override
+  late final GeneratedColumn<int> cardId = GeneratedColumn<int>(
+    'card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _monthMeta = const VerificationMeta('month');
+  @override
+  late final GeneratedColumn<int> month = GeneratedColumn<int>(
+    'month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _yearMeta = const VerificationMeta('year');
+  @override
+  late final GeneratedColumn<int> year = GeneratedColumn<int>(
+    'year',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalInCentsMeta = const VerificationMeta(
+    'totalInCents',
+  );
+  @override
+  late final GeneratedColumn<int> totalInCents = GeneratedColumn<int>(
+    'total_in_cents',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _adjustedTotalInCentsMeta =
+      const VerificationMeta('adjustedTotalInCents');
+  @override
+  late final GeneratedColumn<int> adjustedTotalInCents = GeneratedColumn<int>(
+    'adjusted_total_in_cents',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isClosedMeta = const VerificationMeta(
+    'isClosed',
+  );
+  @override
+  late final GeneratedColumn<bool> isClosed = GeneratedColumn<bool>(
+    'is_closed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_closed" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _isPaidMeta = const VerificationMeta('isPaid');
+  @override
+  late final GeneratedColumn<bool> isPaid = GeneratedColumn<bool>(
+    'is_paid',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_paid" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    cardId,
+    month,
+    year,
+    totalInCents,
+    adjustedTotalInCents,
+    isClosed,
+    isPaid,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'invoices';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Invoice> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('card_id')) {
+      context.handle(
+        _cardIdMeta,
+        cardId.isAcceptableOrUnknown(data['card_id']!, _cardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cardIdMeta);
+    }
+    if (data.containsKey('month')) {
+      context.handle(
+        _monthMeta,
+        month.isAcceptableOrUnknown(data['month']!, _monthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_monthMeta);
+    }
+    if (data.containsKey('year')) {
+      context.handle(
+        _yearMeta,
+        year.isAcceptableOrUnknown(data['year']!, _yearMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_yearMeta);
+    }
+    if (data.containsKey('total_in_cents')) {
+      context.handle(
+        _totalInCentsMeta,
+        totalInCents.isAcceptableOrUnknown(
+          data['total_in_cents']!,
+          _totalInCentsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalInCentsMeta);
+    }
+    if (data.containsKey('adjusted_total_in_cents')) {
+      context.handle(
+        _adjustedTotalInCentsMeta,
+        adjustedTotalInCents.isAcceptableOrUnknown(
+          data['adjusted_total_in_cents']!,
+          _adjustedTotalInCentsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_closed')) {
+      context.handle(
+        _isClosedMeta,
+        isClosed.isAcceptableOrUnknown(data['is_closed']!, _isClosedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isClosedMeta);
+    }
+    if (data.containsKey('is_paid')) {
+      context.handle(
+        _isPaidMeta,
+        isPaid.isAcceptableOrUnknown(data['is_paid']!, _isPaidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isPaidMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Invoice map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Invoice(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      cardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_id'],
+      )!,
+      month: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}month'],
+      )!,
+      year: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}year'],
+      )!,
+      totalInCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_in_cents'],
+      )!,
+      adjustedTotalInCents: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}adjusted_total_in_cents'],
+      ),
+      isClosed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_closed'],
+      )!,
+      isPaid: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_paid'],
+      )!,
+    );
+  }
+
+  @override
+  $InvoicesTable createAlias(String alias) {
+    return $InvoicesTable(attachedDatabase, alias);
+  }
+}
+
+class Invoice extends DataClass implements Insertable<Invoice> {
+  final int id;
+  final int cardId;
+  final int month;
+  final int year;
+  final int totalInCents;
+  final int? adjustedTotalInCents;
+  final bool isClosed;
+  final bool isPaid;
+  const Invoice({
+    required this.id,
+    required this.cardId,
+    required this.month,
+    required this.year,
+    required this.totalInCents,
+    this.adjustedTotalInCents,
+    required this.isClosed,
+    required this.isPaid,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['card_id'] = Variable<int>(cardId);
+    map['month'] = Variable<int>(month);
+    map['year'] = Variable<int>(year);
+    map['total_in_cents'] = Variable<int>(totalInCents);
+    if (!nullToAbsent || adjustedTotalInCents != null) {
+      map['adjusted_total_in_cents'] = Variable<int>(adjustedTotalInCents);
+    }
+    map['is_closed'] = Variable<bool>(isClosed);
+    map['is_paid'] = Variable<bool>(isPaid);
+    return map;
+  }
+
+  InvoicesCompanion toCompanion(bool nullToAbsent) {
+    return InvoicesCompanion(
+      id: Value(id),
+      cardId: Value(cardId),
+      month: Value(month),
+      year: Value(year),
+      totalInCents: Value(totalInCents),
+      adjustedTotalInCents: adjustedTotalInCents == null && nullToAbsent
+          ? const Value.absent()
+          : Value(adjustedTotalInCents),
+      isClosed: Value(isClosed),
+      isPaid: Value(isPaid),
+    );
+  }
+
+  factory Invoice.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Invoice(
+      id: serializer.fromJson<int>(json['id']),
+      cardId: serializer.fromJson<int>(json['cardId']),
+      month: serializer.fromJson<int>(json['month']),
+      year: serializer.fromJson<int>(json['year']),
+      totalInCents: serializer.fromJson<int>(json['totalInCents']),
+      adjustedTotalInCents: serializer.fromJson<int?>(
+        json['adjustedTotalInCents'],
+      ),
+      isClosed: serializer.fromJson<bool>(json['isClosed']),
+      isPaid: serializer.fromJson<bool>(json['isPaid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'cardId': serializer.toJson<int>(cardId),
+      'month': serializer.toJson<int>(month),
+      'year': serializer.toJson<int>(year),
+      'totalInCents': serializer.toJson<int>(totalInCents),
+      'adjustedTotalInCents': serializer.toJson<int?>(adjustedTotalInCents),
+      'isClosed': serializer.toJson<bool>(isClosed),
+      'isPaid': serializer.toJson<bool>(isPaid),
+    };
+  }
+
+  Invoice copyWith({
+    int? id,
+    int? cardId,
+    int? month,
+    int? year,
+    int? totalInCents,
+    Value<int?> adjustedTotalInCents = const Value.absent(),
+    bool? isClosed,
+    bool? isPaid,
+  }) => Invoice(
+    id: id ?? this.id,
+    cardId: cardId ?? this.cardId,
+    month: month ?? this.month,
+    year: year ?? this.year,
+    totalInCents: totalInCents ?? this.totalInCents,
+    adjustedTotalInCents: adjustedTotalInCents.present
+        ? adjustedTotalInCents.value
+        : this.adjustedTotalInCents,
+    isClosed: isClosed ?? this.isClosed,
+    isPaid: isPaid ?? this.isPaid,
+  );
+  Invoice copyWithCompanion(InvoicesCompanion data) {
+    return Invoice(
+      id: data.id.present ? data.id.value : this.id,
+      cardId: data.cardId.present ? data.cardId.value : this.cardId,
+      month: data.month.present ? data.month.value : this.month,
+      year: data.year.present ? data.year.value : this.year,
+      totalInCents: data.totalInCents.present
+          ? data.totalInCents.value
+          : this.totalInCents,
+      adjustedTotalInCents: data.adjustedTotalInCents.present
+          ? data.adjustedTotalInCents.value
+          : this.adjustedTotalInCents,
+      isClosed: data.isClosed.present ? data.isClosed.value : this.isClosed,
+      isPaid: data.isPaid.present ? data.isPaid.value : this.isPaid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Invoice(')
+          ..write('id: $id, ')
+          ..write('cardId: $cardId, ')
+          ..write('month: $month, ')
+          ..write('year: $year, ')
+          ..write('totalInCents: $totalInCents, ')
+          ..write('adjustedTotalInCents: $adjustedTotalInCents, ')
+          ..write('isClosed: $isClosed, ')
+          ..write('isPaid: $isPaid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    cardId,
+    month,
+    year,
+    totalInCents,
+    adjustedTotalInCents,
+    isClosed,
+    isPaid,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Invoice &&
+          other.id == this.id &&
+          other.cardId == this.cardId &&
+          other.month == this.month &&
+          other.year == this.year &&
+          other.totalInCents == this.totalInCents &&
+          other.adjustedTotalInCents == this.adjustedTotalInCents &&
+          other.isClosed == this.isClosed &&
+          other.isPaid == this.isPaid);
+}
+
+class InvoicesCompanion extends UpdateCompanion<Invoice> {
+  final Value<int> id;
+  final Value<int> cardId;
+  final Value<int> month;
+  final Value<int> year;
+  final Value<int> totalInCents;
+  final Value<int?> adjustedTotalInCents;
+  final Value<bool> isClosed;
+  final Value<bool> isPaid;
+  const InvoicesCompanion({
+    this.id = const Value.absent(),
+    this.cardId = const Value.absent(),
+    this.month = const Value.absent(),
+    this.year = const Value.absent(),
+    this.totalInCents = const Value.absent(),
+    this.adjustedTotalInCents = const Value.absent(),
+    this.isClosed = const Value.absent(),
+    this.isPaid = const Value.absent(),
+  });
+  InvoicesCompanion.insert({
+    this.id = const Value.absent(),
+    required int cardId,
+    required int month,
+    required int year,
+    required int totalInCents,
+    this.adjustedTotalInCents = const Value.absent(),
+    required bool isClosed,
+    required bool isPaid,
+  }) : cardId = Value(cardId),
+       month = Value(month),
+       year = Value(year),
+       totalInCents = Value(totalInCents),
+       isClosed = Value(isClosed),
+       isPaid = Value(isPaid);
+  static Insertable<Invoice> custom({
+    Expression<int>? id,
+    Expression<int>? cardId,
+    Expression<int>? month,
+    Expression<int>? year,
+    Expression<int>? totalInCents,
+    Expression<int>? adjustedTotalInCents,
+    Expression<bool>? isClosed,
+    Expression<bool>? isPaid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (cardId != null) 'card_id': cardId,
+      if (month != null) 'month': month,
+      if (year != null) 'year': year,
+      if (totalInCents != null) 'total_in_cents': totalInCents,
+      if (adjustedTotalInCents != null)
+        'adjusted_total_in_cents': adjustedTotalInCents,
+      if (isClosed != null) 'is_closed': isClosed,
+      if (isPaid != null) 'is_paid': isPaid,
+    });
+  }
+
+  InvoicesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? cardId,
+    Value<int>? month,
+    Value<int>? year,
+    Value<int>? totalInCents,
+    Value<int?>? adjustedTotalInCents,
+    Value<bool>? isClosed,
+    Value<bool>? isPaid,
+  }) {
+    return InvoicesCompanion(
+      id: id ?? this.id,
+      cardId: cardId ?? this.cardId,
+      month: month ?? this.month,
+      year: year ?? this.year,
+      totalInCents: totalInCents ?? this.totalInCents,
+      adjustedTotalInCents: adjustedTotalInCents ?? this.adjustedTotalInCents,
+      isClosed: isClosed ?? this.isClosed,
+      isPaid: isPaid ?? this.isPaid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (cardId.present) {
+      map['card_id'] = Variable<int>(cardId.value);
+    }
+    if (month.present) {
+      map['month'] = Variable<int>(month.value);
+    }
+    if (year.present) {
+      map['year'] = Variable<int>(year.value);
+    }
+    if (totalInCents.present) {
+      map['total_in_cents'] = Variable<int>(totalInCents.value);
+    }
+    if (adjustedTotalInCents.present) {
+      map['adjusted_total_in_cents'] = Variable<int>(
+        adjustedTotalInCents.value,
+      );
+    }
+    if (isClosed.present) {
+      map['is_closed'] = Variable<bool>(isClosed.value);
+    }
+    if (isPaid.present) {
+      map['is_paid'] = Variable<bool>(isPaid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvoicesCompanion(')
+          ..write('id: $id, ')
+          ..write('cardId: $cardId, ')
+          ..write('month: $month, ')
+          ..write('year: $year, ')
+          ..write('totalInCents: $totalInCents, ')
+          ..write('adjustedTotalInCents: $adjustedTotalInCents, ')
+          ..write('isClosed: $isClosed, ')
+          ..write('isPaid: $isPaid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   late final $FinanceTransactionsTable financeTransactions =
       $FinanceTransactionsTable(this);
+  late final $CreditCardsTable creditCards = $CreditCardsTable(this);
+  late final $InvoicesTable invoices = $InvoicesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -948,6 +1821,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     accounts,
     financeTransactions,
+    creditCards,
+    invoices,
   ];
 }
 
@@ -1439,6 +2314,453 @@ typedef $$FinanceTransactionsTableProcessedTableManager =
       FinanceTransaction,
       PrefetchHooks Function()
     >;
+typedef $$CreditCardsTableCreateCompanionBuilder =
+    CreditCardsCompanion Function({
+      Value<int> id,
+      required String name,
+      required int limitInCents,
+      required int closingDay,
+      required int dueDay,
+    });
+typedef $$CreditCardsTableUpdateCompanionBuilder =
+    CreditCardsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int> limitInCents,
+      Value<int> closingDay,
+      Value<int> dueDay,
+    });
+
+class $$CreditCardsTableFilterComposer
+    extends Composer<_$AppDatabase, $CreditCardsTable> {
+  $$CreditCardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get limitInCents => $composableBuilder(
+    column: $table.limitInCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dueDay => $composableBuilder(
+    column: $table.dueDay,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CreditCardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CreditCardsTable> {
+  $$CreditCardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get limitInCents => $composableBuilder(
+    column: $table.limitInCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dueDay => $composableBuilder(
+    column: $table.dueDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CreditCardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CreditCardsTable> {
+  $$CreditCardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get limitInCents => $composableBuilder(
+    column: $table.limitInCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get closingDay => $composableBuilder(
+    column: $table.closingDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dueDay =>
+      $composableBuilder(column: $table.dueDay, builder: (column) => column);
+}
+
+class $$CreditCardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CreditCardsTable,
+          CreditCard,
+          $$CreditCardsTableFilterComposer,
+          $$CreditCardsTableOrderingComposer,
+          $$CreditCardsTableAnnotationComposer,
+          $$CreditCardsTableCreateCompanionBuilder,
+          $$CreditCardsTableUpdateCompanionBuilder,
+          (
+            CreditCard,
+            BaseReferences<_$AppDatabase, $CreditCardsTable, CreditCard>,
+          ),
+          CreditCard,
+          PrefetchHooks Function()
+        > {
+  $$CreditCardsTableTableManager(_$AppDatabase db, $CreditCardsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CreditCardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CreditCardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CreditCardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> limitInCents = const Value.absent(),
+                Value<int> closingDay = const Value.absent(),
+                Value<int> dueDay = const Value.absent(),
+              }) => CreditCardsCompanion(
+                id: id,
+                name: name,
+                limitInCents: limitInCents,
+                closingDay: closingDay,
+                dueDay: dueDay,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required int limitInCents,
+                required int closingDay,
+                required int dueDay,
+              }) => CreditCardsCompanion.insert(
+                id: id,
+                name: name,
+                limitInCents: limitInCents,
+                closingDay: closingDay,
+                dueDay: dueDay,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CreditCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CreditCardsTable,
+      CreditCard,
+      $$CreditCardsTableFilterComposer,
+      $$CreditCardsTableOrderingComposer,
+      $$CreditCardsTableAnnotationComposer,
+      $$CreditCardsTableCreateCompanionBuilder,
+      $$CreditCardsTableUpdateCompanionBuilder,
+      (
+        CreditCard,
+        BaseReferences<_$AppDatabase, $CreditCardsTable, CreditCard>,
+      ),
+      CreditCard,
+      PrefetchHooks Function()
+    >;
+typedef $$InvoicesTableCreateCompanionBuilder =
+    InvoicesCompanion Function({
+      Value<int> id,
+      required int cardId,
+      required int month,
+      required int year,
+      required int totalInCents,
+      Value<int?> adjustedTotalInCents,
+      required bool isClosed,
+      required bool isPaid,
+    });
+typedef $$InvoicesTableUpdateCompanionBuilder =
+    InvoicesCompanion Function({
+      Value<int> id,
+      Value<int> cardId,
+      Value<int> month,
+      Value<int> year,
+      Value<int> totalInCents,
+      Value<int?> adjustedTotalInCents,
+      Value<bool> isClosed,
+      Value<bool> isPaid,
+    });
+
+class $$InvoicesTableFilterComposer
+    extends Composer<_$AppDatabase, $InvoicesTable> {
+  $$InvoicesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get year => $composableBuilder(
+    column: $table.year,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalInCents => $composableBuilder(
+    column: $table.totalInCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get adjustedTotalInCents => $composableBuilder(
+    column: $table.adjustedTotalInCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isClosed => $composableBuilder(
+    column: $table.isClosed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPaid => $composableBuilder(
+    column: $table.isPaid,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InvoicesTableOrderingComposer
+    extends Composer<_$AppDatabase, $InvoicesTable> {
+  $$InvoicesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get year => $composableBuilder(
+    column: $table.year,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalInCents => $composableBuilder(
+    column: $table.totalInCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get adjustedTotalInCents => $composableBuilder(
+    column: $table.adjustedTotalInCents,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isClosed => $composableBuilder(
+    column: $table.isClosed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPaid => $composableBuilder(
+    column: $table.isPaid,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InvoicesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InvoicesTable> {
+  $$InvoicesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get cardId =>
+      $composableBuilder(column: $table.cardId, builder: (column) => column);
+
+  GeneratedColumn<int> get month =>
+      $composableBuilder(column: $table.month, builder: (column) => column);
+
+  GeneratedColumn<int> get year =>
+      $composableBuilder(column: $table.year, builder: (column) => column);
+
+  GeneratedColumn<int> get totalInCents => $composableBuilder(
+    column: $table.totalInCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get adjustedTotalInCents => $composableBuilder(
+    column: $table.adjustedTotalInCents,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isClosed =>
+      $composableBuilder(column: $table.isClosed, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPaid =>
+      $composableBuilder(column: $table.isPaid, builder: (column) => column);
+}
+
+class $$InvoicesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InvoicesTable,
+          Invoice,
+          $$InvoicesTableFilterComposer,
+          $$InvoicesTableOrderingComposer,
+          $$InvoicesTableAnnotationComposer,
+          $$InvoicesTableCreateCompanionBuilder,
+          $$InvoicesTableUpdateCompanionBuilder,
+          (Invoice, BaseReferences<_$AppDatabase, $InvoicesTable, Invoice>),
+          Invoice,
+          PrefetchHooks Function()
+        > {
+  $$InvoicesTableTableManager(_$AppDatabase db, $InvoicesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InvoicesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InvoicesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InvoicesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> cardId = const Value.absent(),
+                Value<int> month = const Value.absent(),
+                Value<int> year = const Value.absent(),
+                Value<int> totalInCents = const Value.absent(),
+                Value<int?> adjustedTotalInCents = const Value.absent(),
+                Value<bool> isClosed = const Value.absent(),
+                Value<bool> isPaid = const Value.absent(),
+              }) => InvoicesCompanion(
+                id: id,
+                cardId: cardId,
+                month: month,
+                year: year,
+                totalInCents: totalInCents,
+                adjustedTotalInCents: adjustedTotalInCents,
+                isClosed: isClosed,
+                isPaid: isPaid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int cardId,
+                required int month,
+                required int year,
+                required int totalInCents,
+                Value<int?> adjustedTotalInCents = const Value.absent(),
+                required bool isClosed,
+                required bool isPaid,
+              }) => InvoicesCompanion.insert(
+                id: id,
+                cardId: cardId,
+                month: month,
+                year: year,
+                totalInCents: totalInCents,
+                adjustedTotalInCents: adjustedTotalInCents,
+                isClosed: isClosed,
+                isPaid: isPaid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InvoicesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InvoicesTable,
+      Invoice,
+      $$InvoicesTableFilterComposer,
+      $$InvoicesTableOrderingComposer,
+      $$InvoicesTableAnnotationComposer,
+      $$InvoicesTableCreateCompanionBuilder,
+      $$InvoicesTableUpdateCompanionBuilder,
+      (Invoice, BaseReferences<_$AppDatabase, $InvoicesTable, Invoice>),
+      Invoice,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1447,4 +2769,8 @@ class $AppDatabaseManager {
       $$AccountsTableTableManager(_db, _db.accounts);
   $$FinanceTransactionsTableTableManager get financeTransactions =>
       $$FinanceTransactionsTableTableManager(_db, _db.financeTransactions);
+  $$CreditCardsTableTableManager get creditCards =>
+      $$CreditCardsTableTableManager(_db, _db.creditCards);
+  $$InvoicesTableTableManager get invoices =>
+      $$InvoicesTableTableManager(_db, _db.invoices);
 }

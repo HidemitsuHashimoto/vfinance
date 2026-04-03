@@ -49,4 +49,37 @@ void main() {
     expect(row, isNotNull);
     expect(row!.balanceInCents, 2_000);
   });
+
+  test(
+    'persists credit card and invoice with optional adjusted total',
+    () async {
+      final AppDatabase db = AppDatabase.memory();
+      addTearDown(db.close);
+      final FinanceLocalRepository repo = FinanceLocalRepository(db);
+      final int cardId = await repo.insertCreditCard(
+        name: 'Visa',
+        limitInCents: 5_000_000,
+        closingDay: 10,
+        dueDay: 17,
+      );
+      final int invoiceId = await repo.insertInvoice(
+        cardId: cardId,
+        month: 4,
+        year: 2026,
+        totalInCents: 3_500,
+        adjustedTotalInCents: 3_000,
+        isClosed: true,
+        isPaid: false,
+      );
+      final Invoice? row = await repo.getInvoiceById(invoiceId);
+      expect(row, isNotNull);
+      expect(row!.cardId, cardId);
+      expect(row.month, 4);
+      expect(row.year, 2026);
+      expect(row.totalInCents, 3_500);
+      expect(row.adjustedTotalInCents, 3_000);
+      expect(row.isClosed, isTrue);
+      expect(row.isPaid, isFalse);
+    },
+  );
 }

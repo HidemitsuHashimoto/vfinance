@@ -39,7 +39,37 @@ class FinanceTransactions extends Table {
   IntColumn get installmentId => integer().nullable()();
 }
 
-@DriftDatabase(tables: [Accounts, FinanceTransactions])
+class CreditCards extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  TextColumn get name => text()();
+
+  IntColumn get limitInCents => integer()();
+
+  IntColumn get closingDay => integer()();
+
+  IntColumn get dueDay => integer()();
+}
+
+class Invoices extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  IntColumn get cardId => integer()();
+
+  IntColumn get month => integer()();
+
+  IntColumn get year => integer()();
+
+  IntColumn get totalInCents => integer()();
+
+  IntColumn get adjustedTotalInCents => integer().nullable()();
+
+  BoolColumn get isClosed => boolean()();
+
+  BoolColumn get isPaid => boolean()();
+}
+
+@DriftDatabase(tables: [Accounts, FinanceTransactions, CreditCards, Invoices])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -52,13 +82,19 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(creditCards);
+          await m.createTable(invoices);
+        }
       },
     );
   }
