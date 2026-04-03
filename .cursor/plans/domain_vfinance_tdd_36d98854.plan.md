@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: phase-2-invoice
     content: "Fase 2: TDD regra closingDay, total de fatura, adjustedTotal no saldo, estados aberto/pago"
-    status: pending
+    status: completed
   - id: phase-3-installments
     content: "Fase 3: TDD divisão em N centavos + datas mensais + ligação installmentId/cartão"
     status: pending
