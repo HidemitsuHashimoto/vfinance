@@ -1,0 +1,23 @@
+---
+description: Use FVM for Flutter/Dart; never assume global Flutter or install it
+alwaysApply: true
+---
+
+# Flutter via FVM
+
+Este projeto usa **FVM** para fixar a versão do Flutter. O agente **não** deve tentar instalar o Flutter (apt, snap, download manual, imagens Docker só para contornar ausência do SDK, etc.) salvo pedido explícito do utilizador.
+
+## Comandos
+
+Executar sempre a partir da raiz do repositório, com:
+
+- `fvm flutter <args>` — por exemplo `fvm flutter pub get`, `fvm flutter test`, `fvm flutter analyze`
+- `fvm dart <args>` — por exemplo `fvm dart run build_runner build --delete-conflicting-outputs`
+
+Se `flutter` ou `dart` não estiverem no `PATH`, usar **apenas** o binário que o FVM expõe (ex.: `fvm flutter` após `fvm install` no projeto).
+
+## O que evitar
+
+- Assumir `flutter`/`dart` globais disponíveis sem passar pelo FVM
+- Subir containers Docker só para ter Flutter, quando o ambiente local do utilizador já é FVM
+- Sugerir instalação global do Flutter como passo padrão de troubleshooting

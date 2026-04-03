@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: phase-1-accounts-tx
     content: "Fase 1: TDD saldo conta (crédito não altera), saldo total com faturas abertas; schema Drift (produção) + repositório enxuto"
-    status: pending
+    status: completed
   - id: phase-2-invoice
     content: "Fase 2: TDD regra closingDay, total de fatura, adjustedTotal no saldo, estados aberto/pago"
     status: pending
