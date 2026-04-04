@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:vfinance/app/vfinance_scope.dart';
 import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 import 'package:vfinance/presentation/formatting/amount_format.dart';
+import 'package:vfinance/presentation/l10n/transaction_labels.dart';
 
 /// Lists accounts and balances.
 class AccountsScreen extends StatefulWidget {
@@ -29,8 +31,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Contas')),
+      appBar: AppBar(title: Text(l.accountsTitle)),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_accounts',
         onPressed: () => context.push('/accounts/add'),
@@ -44,9 +47,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           }
           final List<Account> rows = snap.data ?? <Account>[];
           if (rows.isEmpty) {
-            return const Center(
-              child: Text('Nenhuma conta. Toque em + para criar.'),
-            );
+            return Center(child: Text(l.accountsEmpty));
           }
           return ListView.separated(
             itemCount: rows.length,
@@ -56,7 +57,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               final Account a = rows[index];
               return ListTile(
                 title: Text(a.name),
-                subtitle: Text(a.type),
+                subtitle: Text(labelAccountTypeStorage(l, a.type)),
                 trailing: Text(
                   formatCents(a.balanceInCents),
                   style: Theme.of(context).textTheme.titleMedium,

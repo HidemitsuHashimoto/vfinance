@@ -5,6 +5,7 @@ import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/invoice_rules.dart';
 import 'package:vfinance/domain/money.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 import 'package:vfinance/presentation/formatting/amount_format.dart';
 
 /// Lists cards and their invoices; can add card or invoice rows.
@@ -33,8 +34,9 @@ class _CardsScreenState extends State<CardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Cartões')),
+      appBar: AppBar(title: Text(l.cardsTitle)),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_cards',
         onPressed: () => context.push('/cards/add'),
@@ -55,9 +57,7 @@ class _CardsScreenState extends State<CardsScreen> {
               }
               final List<Invoice> invoices = sI.data ?? <Invoice>[];
               if (cards.isEmpty) {
-                return const Center(
-                  child: Text('Nenhum cartão. Toque em + para criar.'),
-                );
+                return Center(child: Text(l.cardsEmpty));
               }
               final Map<int, List<Invoice>> invoicesByCardId =
                   <int, List<Invoice>>{};
@@ -77,9 +77,9 @@ class _CardsScreenState extends State<CardsScreen> {
                     leading: const Icon(Icons.credit_card),
                     title: Text(c.name),
                     subtitle: Text(
-                      'Fecha dia ${c.closingDay} · '
-                      'Vence dia ${c.dueDay} · '
-                      'Limite ${formatCents(c.limitInCents)}',
+                      '${l.cardsClosesOn(c.closingDay)} · '
+                      '${l.cardsDueOn(c.dueDay)} · '
+                      '${l.cardsLimit(formatCents(c.limitInCents))}',
                     ),
                     children: <Widget>[
                       Align(
@@ -91,29 +91,34 @@ class _CardsScreenState extends State<CardsScreen> {
                             cardId: c.id,
                           ),
                           icon: const Icon(Icons.note_add_outlined),
-                          label: const Text('Nova fatura'),
+                          label: Text(l.cardsNewInvoice),
                         ),
                       ),
                       if (forCard.isEmpty)
-                        const ListTile(title: Text('Sem faturas registradas'))
+                        ListTile(title: Text(l.cardsNoInvoices))
                       else
                         ...forCard.map(
                           (Invoice i) => ListTile(
                             title: Text(
-                              'Fatura ${i.month.toString().padLeft(2, '0')}/'
-                              '${i.year}',
+                              l.cardsInvoiceLine(
+                                i.month.toString().padLeft(2, '0'),
+                                '${i.year}',
+                              ),
                             ),
                             subtitle: Text(
                               i.adjustedTotalInCents != null
-                                  ? 'Total ${formatCents(i.totalInCents)} · '
-                                        'Ajustado '
-                                        '${formatCents(i.adjustedTotalInCents!)}'
-                                  : 'Total ${formatCents(i.totalInCents)}',
+                                  ? l.cardsTotalAdjusted(
+                                      formatCents(i.totalInCents),
+                                      formatCents(i.adjustedTotalInCents!),
+                                    )
+                                  : l.cardsTotalOnly(
+                                      formatCents(i.totalInCents),
+                                    ),
                             ),
                             trailing: Text(
-                              invoiceAffectsTotalUserBalance(isPaid: i.isPaid)
-                                  ? 'Em aberto'
-                                  : 'Paga',
+                              invoiceShowsAsOpenInList(isPaid: i.isPaid)
+                                  ? l.cardsStatusOpen
+                                  : l.cardsStatusPaid,
                             ),
                           ),
                         ),
@@ -133,6 +138,7 @@ class _CardsScreenState extends State<CardsScreen> {
     required FinanceLocalRepository repository,
     required int cardId,
   }) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     final TextEditingController total = TextEditingController();
     final TextEditingController adjusted = TextEditingController();
@@ -164,59 +170,61 @@ class _CardsScreenState extends State<CardsScreen> {
                       shrinkWrap: true,
                       children: <Widget>[
                         Text(
-                          'Nova fatura',
+                          l.cardsSheetNewInvoice,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: month,
-                          decoration: const InputDecoration(
-                            labelText: 'Mês (1–12)',
+                          decoration: InputDecoration(
+                            labelText: l.cardsMonthField,
                           ),
                           keyboardType: TextInputType.number,
                           validator: (String? v) {
                             final int? m = int.tryParse(v ?? '');
                             if (m == null || m < 1 || m > 12) {
-                              return 'Mês inválido';
+                              return l.validationInvalidMonth;
                             }
                             return null;
                           },
                         ),
                         TextFormField(
                           controller: year,
-                          decoration: const InputDecoration(labelText: 'Ano'),
+                          decoration: InputDecoration(
+                            labelText: l.cardsYearField,
+                          ),
                           keyboardType: TextInputType.number,
                           validator: (String? v) {
                             if (int.tryParse(v ?? '') == null) {
-                              return 'Ano inválido';
+                              return l.validationInvalidYear;
                             }
                             return null;
                           },
                         ),
                         TextFormField(
                           controller: total,
-                          decoration: const InputDecoration(
-                            labelText: 'Total (R\$)',
+                          decoration: InputDecoration(
+                            labelText: l.cardsTotalField,
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
                           validator: (String? v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Informe o total';
+                              return l.validationTotalRequired;
                             }
                             try {
                               Money.parseReais(v);
                             } catch (_) {
-                              return 'Valor inválido';
+                              return l.validationInvalidValue;
                             }
                             return null;
                           },
                         ),
                         TextFormField(
                           controller: adjusted,
-                          decoration: const InputDecoration(
-                            labelText: 'Total ajustado (opcional, R\$)',
+                          decoration: InputDecoration(
+                            labelText: l.cardsAdjustedField,
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -228,18 +236,18 @@ class _CardsScreenState extends State<CardsScreen> {
                             try {
                               Money.parseReais(v);
                             } catch (_) {
-                              return 'Valor inválido';
+                              return l.validationInvalidValue;
                             }
                             return null;
                           },
                         ),
                         SwitchListTile(
-                          title: const Text('Fatura fechada'),
+                          title: Text(l.cardsClosedSwitch),
                           value: isClosed,
                           onChanged: (bool v) => setM(() => isClosed = v),
                         ),
                         SwitchListTile(
-                          title: const Text('Fatura paga'),
+                          title: Text(l.cardsPaidSwitch),
                           value: isPaid,
                           onChanged: (bool v) => setM(() => isPaid = v),
                         ),
@@ -269,12 +277,14 @@ class _CardsScreenState extends State<CardsScreen> {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro: $e')),
+                                  SnackBar(
+                                    content: Text(l.errorWithMessage('$e')),
+                                  ),
                                 );
                               }
                             }
                           },
-                          child: const Text('Salvar fatura'),
+                          child: Text(l.cardsSaveInvoice),
                         ),
                       ],
                     ),

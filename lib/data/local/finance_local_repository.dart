@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/domain/balance_rules.dart';
+import 'package:vfinance/domain/invoice_rules.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
 import 'package:vfinance/domain/year_backup_filter.dart';
 import 'package:vfinance/domain/year_backup_snapshot.dart';
@@ -84,7 +85,8 @@ class FinanceLocalRepository {
   }
 
   /// Inserts a row and updates [accountId] balance when payment is not
-  /// credit and [accountId] is non-null.
+  /// credit and [accountId] is non-null. Credit-card expenses update the
+  /// matching invoice cycle total for [cardId].
   Future<int> insertFinanceTransaction({
     required int amountInCents,
     required TransactionType transactionType,
@@ -128,33 +130,96 @@ class FinanceLocalRepository {
         await (_db.update(_db.accounts)..where((t) => t.id.equals(accountId)))
             .write(AccountsCompanion(balanceInCents: Value<int>(next)));
       }
+      final bool isCreditExpense =
+          paymentMethod == PaymentMethod.credit &&
+          transactionType == TransactionType.expense &&
+          cardId != null;
+      if (isCreditExpense) {
+        await _addCreditExpenseToInvoiceCycle(
+          cardId: cardId,
+          purchaseDateUtc: dateUtc,
+          deltaCents: amountInCents,
+        );
+      }
       return rowId;
     });
+  }
+
+  Future<void> _addCreditExpenseToInvoiceCycle({
+    required int cardId,
+    required DateTime purchaseDateUtc,
+    required int deltaCents,
+  }) async {
+    final CreditCard? card = await (_db.select(
+      _db.creditCards,
+    )..where((t) => t.id.equals(cardId))).getSingleOrNull();
+    if (card == null) {
+      throw StateError('Card not found: $cardId');
+    }
+    final InvoiceCycleMonth cycle = computeInvoiceCycleMonth(
+      purchaseDate: purchaseDateUtc,
+      closingDay: card.closingDay,
+    );
+    final Invoice? existing =
+        await (_db.select(_db.invoices)..where(
+              (i) =>
+                  i.cardId.equals(cardId) &
+                  i.month.equals(cycle.month) &
+                  i.year.equals(cycle.year),
+            ))
+            .getSingleOrNull();
+    if (existing == null) {
+      await _db
+          .into(_db.invoices)
+          .insert(
+            InvoicesCompanion.insert(
+              cardId: cardId,
+              month: cycle.month,
+              year: cycle.year,
+              totalInCents: deltaCents,
+              isClosed: false,
+              isPaid: false,
+            ),
+          );
+      return;
+    }
+    final int newTotal = existing.totalInCents + deltaCents;
+    final int? newAdjusted = existing.adjustedTotalInCents == null
+        ? null
+        : existing.adjustedTotalInCents! + deltaCents;
+    await (_db.update(
+      _db.invoices,
+    )..where((i) => i.id.equals(existing.id))).write(
+      InvoicesCompanion(
+        totalInCents: Value<int>(newTotal),
+        adjustedTotalInCents: newAdjusted == null
+            ? const Value.absent()
+            : Value<int?>(newAdjusted),
+      ),
+    );
   }
 
   /// Single shared stream per query so multiple [StreamBuilder]s (e.g. shell
   /// tabs) do not each create a new Drift `.watch()` mapping chain.
   late final Stream<List<Account>> _watchAccounts = (_db.select(
-        _db.accounts,
-      )..orderBy([(row) => OrderingTerm.asc(row.name)]))
-      .watch();
+    _db.accounts,
+  )..orderBy([(row) => OrderingTerm.asc(row.name)])).watch();
 
   late final Stream<List<FinanceTransaction>> _watchFinanceTransactions =
-      (_db.select(_db.financeTransactions)
-            ..orderBy([(row) => OrderingTerm.desc(row.dateUtcMillis)]))
-          .watch();
+      (_db.select(
+        _db.financeTransactions,
+      )..orderBy([(row) => OrderingTerm.desc(row.dateUtcMillis)])).watch();
 
   late final Stream<List<CreditCard>> _watchCreditCards = (_db.select(
-        _db.creditCards,
-      )..orderBy([(row) => OrderingTerm.asc(row.name)]))
-      .watch();
+    _db.creditCards,
+  )..orderBy([(row) => OrderingTerm.asc(row.name)])).watch();
 
-  late final Stream<List<Invoice>> _watchInvoices = (_db.select(_db.invoices)
-        ..orderBy([
-          (row) => OrderingTerm.desc(row.year),
-          (row) => OrderingTerm.desc(row.month),
-        ]))
-      .watch();
+  late final Stream<List<Invoice>> _watchInvoices =
+      (_db.select(_db.invoices)..orderBy([
+            (row) => OrderingTerm.desc(row.year),
+            (row) => OrderingTerm.desc(row.month),
+          ]))
+          .watch();
 
   /// Emits all accounts ordered by name whenever the table changes.
   Stream<List<Account>> watchAccounts() => _watchAccounts;

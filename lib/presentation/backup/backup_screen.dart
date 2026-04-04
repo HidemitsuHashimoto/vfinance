@@ -8,6 +8,7 @@ import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/year_backup_codec.dart';
 import 'package:vfinance/domain/year_backup_file_name.dart';
 import 'package:vfinance/domain/year_backup_snapshot.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 
 /// Export/import per-year JSON via storage picker ([domain.md]).
 class BackupScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _export(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     final FinanceLocalRepository repo = VfinanceScope.of(context);
     setState(() => _busy = true);
     try {
@@ -35,22 +37,22 @@ class _BackupScreenState extends State<BackupScreen> {
       final String json = encodeYearBackupSnapshot(snapshot);
       final Uint8List bytes = Uint8List.fromList(utf8.encode(json));
       await FilePicker.platform.saveFile(
-        dialogTitle: 'Salvar backup',
+        dialogTitle: l.backupSaveDialogTitle,
         fileName: buildYearBackupFileName(_year),
         bytes: bytes,
         type: FileType.custom,
         allowedExtensions: <String>['json'],
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Backup gerado. Escolha onde salvar.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.backupGenerated)));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Falha ao exportar: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.backupExportFailed('$e'))));
       }
     } finally {
       if (mounted) {
@@ -60,6 +62,7 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _import(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     final FinanceLocalRepository repo = VfinanceScope.of(context);
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -75,9 +78,9 @@ class _BackupScreenState extends State<BackupScreen> {
     final PlatformFile file = result.files.single;
     if (file.bytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível ler o arquivo.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.backupReadFailed)));
       }
       return;
     }
@@ -89,7 +92,7 @@ class _BackupScreenState extends State<BackupScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('JSON inválido: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.backupInvalidJson('$e'))));
       }
       return;
     }
@@ -100,20 +103,16 @@ class _BackupScreenState extends State<BackupScreen> {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Restaurar backup?'),
-          content: Text(
-            'Os lançamentos e faturas de ${snapshot.year} serão '
-            'substituídos pelos dados do arquivo. Outros anos não são '
-            'alterados.',
-          ),
+          title: Text(l.restoreDialogTitle),
+          content: Text(l.restoreDialogBody(snapshot.year)),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancelar'),
+              child: Text(l.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restaurar'),
+              child: Text(l.restoreAction),
             ),
           ],
         );
@@ -126,15 +125,15 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       await repo.importYearBackupSnapshot(snapshot);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dados de ${snapshot.year} restaurados.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.restoreDone(snapshot.year))));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Falha ao importar: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.restoreFailed('$e'))));
       }
     } finally {
       if (mounted) {
@@ -145,17 +144,17 @@ class _BackupScreenState extends State<BackupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Backup')),
+      appBar: AppBar(title: Text(l.backupTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          Text('Backup por ano (JSON)', style: theme.textTheme.titleMedium),
+          Text(l.backupSectionTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Exporta ou restaura dados de um ano civil. Nome sugerido: '
-            '${buildYearBackupFileName(_year)}.',
+            l.backupDescription(buildYearBackupFileName(_year)),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -163,7 +162,7 @@ class _BackupScreenState extends State<BackupScreen> {
           const SizedBox(height: 24),
           DropdownButtonFormField<int>(
             initialValue: _year,
-            decoration: const InputDecoration(labelText: 'Ano do backup'),
+            decoration: InputDecoration(labelText: l.backupYearLabel),
             items: _yearChoices
                 .map(
                   (int y) => DropdownMenuItem<int>(value: y, child: Text('$y')),
@@ -181,13 +180,13 @@ class _BackupScreenState extends State<BackupScreen> {
           FilledButton.icon(
             onPressed: _busy ? null : () => _export(context),
             icon: const Icon(Icons.upload_file),
-            label: const Text('Exportar…'),
+            label: Text(l.commonExport),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: _busy ? null : () => _import(context),
             icon: const Icon(Icons.download_outlined),
-            label: const Text('Importar arquivo…'),
+            label: Text(l.commonImport),
           ),
           if (_busy) ...<Widget>[
             const SizedBox(height: 24),

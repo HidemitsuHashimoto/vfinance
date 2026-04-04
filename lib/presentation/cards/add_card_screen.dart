@@ -3,6 +3,7 @@ import 'package:vfinance/app/pop_current_route.dart';
 import 'package:vfinance/app/vfinance_scope.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/money.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 
 /// Registers a credit card (closing / due days as in [domain.md]).
 class AddCardScreen extends StatefulWidget {
@@ -30,6 +31,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     if (_isSaving) {
       return;
     }
@@ -40,9 +42,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
     final int closing = int.parse(_closing.text.trim());
     final int due = int.parse(_due.text.trim());
     if (closing < 1 || closing > 31 || due < 1 || due > 31) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dias devem estar entre 1 e 31.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.daysInvalidRange)));
       return;
     }
     setState(() => _isSaving = true);
@@ -60,7 +62,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.errorWithMessage('$e'))));
       }
     } finally {
       if (mounted) {
@@ -71,8 +73,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo cartão')),
+      appBar: AppBar(title: Text(l.addCardTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -80,15 +83,16 @@ class _AddCardScreenState extends State<AddCardScreen> {
           children: <Widget>[
             TextFormField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Nome'),
-              validator: (String? v) =>
-                  (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+              decoration: InputDecoration(labelText: l.addCardNameLabel),
+              validator: (String? v) => (v == null || v.trim().isEmpty)
+                  ? l.validationNameRequired
+                  : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _limit,
-              decoration: const InputDecoration(
-                labelText: 'Limite (R\$)',
+              decoration: InputDecoration(
+                labelText: l.addCardLimitLabel,
                 hintText: '0,00',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -96,12 +100,12 @@ class _AddCardScreenState extends State<AddCardScreen> {
               ),
               validator: (String? v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Informe o limite';
+                  return l.validationLimitRequired;
                 }
                 try {
                   Money.parseReais(v);
                 } catch (_) {
-                  return 'Valor inválido';
+                  return l.validationInvalidValue;
                 }
                 return null;
               },
@@ -109,13 +113,11 @@ class _AddCardScreenState extends State<AddCardScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _closing,
-              decoration: const InputDecoration(
-                labelText: 'Dia de fechamento (1–31)',
-              ),
+              decoration: InputDecoration(labelText: l.addCardClosingLabel),
               keyboardType: TextInputType.number,
               validator: (String? v) {
                 if (v == null || int.tryParse(v.trim()) == null) {
-                  return 'Número inválido';
+                  return l.validationInvalidNumber;
                 }
                 return null;
               },
@@ -123,13 +125,11 @@ class _AddCardScreenState extends State<AddCardScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _due,
-              decoration: const InputDecoration(
-                labelText: 'Dia de vencimento (1–31)',
-              ),
+              decoration: InputDecoration(labelText: l.addCardDueLabel),
               keyboardType: TextInputType.number,
               validator: (String? v) {
                 if (v == null || int.tryParse(v.trim()) == null) {
-                  return 'Número inválido';
+                  return l.validationInvalidNumber;
                 }
                 return null;
               },
@@ -143,7 +143,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Salvar'),
+                  : Text(l.commonSave),
             ),
           ],
         ),

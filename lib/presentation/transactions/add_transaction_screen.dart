@@ -5,6 +5,8 @@ import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/money.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
+import 'package:vfinance/presentation/l10n/transaction_labels.dart';
 
 /// Registers income/expense with payment method and optional links.
 class AddTransactionScreen extends StatefulWidget {
@@ -71,6 +73,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -84,9 +87,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           return;
         }
         if (list.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cadastre uma conta primeiro.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.registerAccountFirst)));
           return;
         }
         accountId = list.first.id;
@@ -99,9 +102,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           return;
         }
         if (list.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cadastre um cartão primeiro.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.registerCardFirst)));
           return;
         }
         cardId = list.first.id;
@@ -126,31 +129,32 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.errorWithMessage('$e'))));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     final Stream<List<Account>> accountsStream = _accountsStream!;
     final Stream<List<CreditCard>> cardsStream = _cardsStream!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo lançamento')),
+      appBar: AppBar(title: Text(l.addTransactionTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             SegmentedButton<TransactionType>(
-              segments: const <ButtonSegment<TransactionType>>[
+              segments: <ButtonSegment<TransactionType>>[
                 ButtonSegment<TransactionType>(
                   value: TransactionType.expense,
-                  label: Text('Despesa'),
+                  label: Text(l.addTransactionExpense),
                 ),
                 ButtonSegment<TransactionType>(
                   value: TransactionType.income,
-                  label: Text('Receita'),
+                  label: Text(l.addTransactionIncome),
                 ),
               ],
               selected: <TransactionType>{_type},
@@ -161,12 +165,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<PaymentMethod>(
               initialValue: _method,
-              decoration: const InputDecoration(labelText: 'Meio de pagamento'),
+              decoration: InputDecoration(
+                labelText: l.addTransactionPaymentMethod,
+              ),
               items: PaymentMethod.values
                   .map(
                     (PaymentMethod m) => DropdownMenuItem<PaymentMethod>(
                       value: m,
-                      child: Text(m.storageName),
+                      child: Text(labelPaymentMethod(l, m)),
                     ),
                   )
                   .toList(),
@@ -179,8 +185,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _amount,
-              decoration: const InputDecoration(
-                labelText: 'Valor (R\$)',
+              decoration: InputDecoration(
+                labelText: l.addTransactionAmountLabel,
                 hintText: '0,00',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -188,12 +194,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
               validator: (String? v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Informe o valor';
+                  return l.validationValueRequired;
                 }
                 try {
                   Money.parseReais(v);
                 } catch (_) {
-                  return 'Valor inválido';
+                  return l.validationInvalidValue;
                 }
                 return null;
               },
@@ -201,10 +207,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _category,
-              decoration: const InputDecoration(labelText: 'Categoria'),
+              decoration: InputDecoration(
+                labelText: l.addTransactionCategoryLabel,
+              ),
               validator: (String? v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Informe a categoria';
+                  return l.validationCategoryRequired;
                 }
                 return null;
               },
@@ -212,17 +220,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _description,
-              decoration: const InputDecoration(labelText: 'Descrição'),
+              decoration: InputDecoration(
+                labelText: l.addTransactionDescriptionLabel,
+              ),
               validator: (String? v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Informe a descrição';
+                  return l.validationDescriptionRequired;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 16),
             ListTile(
-              title: const Text('Data'),
+              title: Text(l.addTransactionDateLabel),
               subtitle: Text(
                 '${_dateUtc.day.toString().padLeft(2, '0')}/'
                 '${_dateUtc.month.toString().padLeft(2, '0')}/'
@@ -241,11 +251,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     (BuildContext context, AsyncSnapshot<List<Account>> s) {
                       final List<Account> accounts = s.data ?? <Account>[];
                       if (accounts.isEmpty) {
-                        return const Text('Cadastre uma conta primeiro.');
+                        return Text(l.registerAccountFirst);
                       }
                       return DropdownButtonFormField<int>(
                         initialValue: _accountId ?? accounts.first.id,
-                        decoration: const InputDecoration(labelText: 'Conta'),
+                        decoration: InputDecoration(
+                          labelText: l.addTransactionAccountLabel,
+                        ),
                         items: accounts
                             .map(
                               (Account a) => DropdownMenuItem<int>(
@@ -267,11 +279,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     (BuildContext context, AsyncSnapshot<List<CreditCard>> s) {
                       final List<CreditCard> cards = s.data ?? <CreditCard>[];
                       if (cards.isEmpty) {
-                        return const Text('Cadastre um cartão primeiro.');
+                        return Text(l.registerCardFirst);
                       }
                       return DropdownButtonFormField<int>(
                         initialValue: _cardId ?? cards.first.id,
-                        decoration: const InputDecoration(labelText: 'Cartão'),
+                        decoration: InputDecoration(
+                          labelText: l.addTransactionCardLabel,
+                        ),
                         items: cards
                             .map(
                               (CreditCard c) => DropdownMenuItem<int>(
@@ -288,7 +302,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => _submit(context),
-              child: const Text('Salvar'),
+              child: Text(l.commonSave),
             ),
           ],
         ),

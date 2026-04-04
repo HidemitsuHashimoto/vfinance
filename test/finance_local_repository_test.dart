@@ -82,4 +82,32 @@ void main() {
       expect(row.isPaid, isFalse);
     },
   );
+
+  test('credit expense creates invoice row for billing cycle', () async {
+    final AppDatabase db = AppDatabase.memory();
+    addTearDown(db.close);
+    final FinanceLocalRepository repo = FinanceLocalRepository(db);
+    final int cardId = await repo.insertCreditCard(
+      name: 'Visa',
+      limitInCents: 5_000_000,
+      closingDay: 15,
+      dueDay: 20,
+    );
+    await repo.insertFinanceTransaction(
+      amountInCents: 1_200,
+      transactionType: TransactionType.expense,
+      category: 'shop',
+      description: 'online',
+      dateUtc: DateTime.utc(2026, 4, 10),
+      paymentMethod: PaymentMethod.credit,
+      cardId: cardId,
+    );
+    final List<Invoice> invs = await db.select(db.invoices).get();
+    expect(invs, hasLength(1));
+    expect(invs.single.cardId, cardId);
+    expect(invs.single.month, 4);
+    expect(invs.single.year, 2026);
+    expect(invs.single.totalInCents, 1_200);
+    expect(invs.single.isPaid, isFalse);
+  });
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:vfinance/app/vfinance_app.dart';
+import 'package:vfinance/data/local/pay_cycle_anchor_store.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const VfinanceApp());
+  final PayCycleAnchorStore payCycleAnchors = await PayCycleAnchorStore.load();
+  runApp(VfinanceApp(payCycleAnchors: payCycleAnchors));
 }

@@ -1,0 +1,206 @@
+{
+  "@@locale": "pt",
+  "appTitle": "vfinance",
+  "navHome": "Início",
+  "navAccounts": "Contas",
+  "navTransactions": "Lançamentos",
+  "navCards": "Cartões",
+  "navBackup": "Backup",
+  "homeTotalBalance": "Saldo total",
+  "homePaycheckPeriodTitle": "Saldo do período (pagamento dia {day})",
+  "@homePaycheckPeriodTitle": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "homePaycheckInterval": "{start} – {end}",
+  "@homePaycheckInterval": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "homePaycheckBalanceFootnote": "Contas menos faturas com vencimento entre essas datas. Em listas, pago/não pago é só informativo.",
+  "homePaycheckSummaryHeading": "Resumo do período",
+  "homePaycheckEmptyTitle": "Defina os dias de recebimento",
+  "homePaycheckEmptyBody": "Adicione o(s) dia(s) do mês em que você recebe (ex.: 5 e 20) para ver o saldo e o fluxo de cada período de pagamento.",
+  "homePaycheckEmptyAction": "Definir dias",
+  "homePaycheckConfigureTooltip": "Dias de recebimento",
+  "homePaycheckDialogTitle": "Dias de recebimento",
+  "homePaycheckDialogBody": "Informe cada dia do mês em que costuma receber (1–31). Você pode ter vários dias.",
+  "homePaycheckDialogDayLabel": "Dia (1–31)",
+  "homePaycheckDialogAdd": "Adicionar",
+  "homePaycheckDialogDuplicateDay": "Esse dia já está na lista.",
+  "homeAccountsCount": "{count, plural, one{{count} conta} other{{count} contas}}",
+  "@homeAccountsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeInvoicesDueInPeriod": "{count, plural, one{{count} fatura a vencer no período} other{{count} faturas a vencer no período}}",
+  "@homeInvoicesDueInPeriod": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homePeriodIncome": "Receitas no período",
+  "homePeriodImmediateExpenses": "Despesas imediatas no período (exceto cartão)",
+  "cardsTitle": "Cartões",
+  "cardsEmpty": "Nenhum cartão. Toque em + para criar.",
+  "cardsNewInvoice": "Nova fatura",
+  "cardsNoInvoices": "Sem faturas registradas",
+  "cardsClosesOn": "Fecha dia {day}",
+  "@cardsClosesOn": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "cardsDueOn": "Vence dia {day}",
+  "@cardsDueOn": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "cardsLimit": "Limite {amount}",
+  "@cardsLimit": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "cardsInvoiceLine": "Fatura {month}/{year}",
+  "@cardsInvoiceLine": {
+    "placeholders": {
+      "month": {"type": "String"},
+      "year": {"type": "String"}
+    }
+  },
+  "cardsTotalAdjusted": "Total {total} · Ajustado {adjusted}",
+  "@cardsTotalAdjusted": {
+    "placeholders": {
+      "total": {"type": "String"},
+      "adjusted": {"type": "String"}
+    }
+  },
+  "cardsTotalOnly": "Total {total}",
+  "@cardsTotalOnly": {
+    "placeholders": {
+      "total": {"type": "String"}
+    }
+  },
+  "cardsStatusOpen": "Em aberto",
+  "cardsStatusPaid": "Paga",
+  "cardsSheetNewInvoice": "Nova fatura",
+  "cardsMonthField": "Mês (1–12)",
+  "cardsYearField": "Ano",
+  "cardsTotalField": "Total (R$)",
+  "cardsAdjustedField": "Total ajustado (opcional, R$)",
+  "cardsClosedSwitch": "Fatura fechada",
+  "cardsPaidSwitch": "Fatura paga",
+  "cardsSaveInvoice": "Salvar fatura",
+  "transactionsTitle": "Lançamentos",
+  "transactionsEmpty": "Nenhum lançamento. Toque em + para adicionar.",
+  "accountsTitle": "Contas",
+  "accountsEmpty": "Nenhuma conta. Toque em + para criar.",
+  "addAccountTitle": "Nova conta",
+  "addAccountNameLabel": "Nome",
+  "addAccountTypeLabel": "Tipo",
+  "addAccountBalanceLabel": "Saldo inicial (opcional)",
+  "accountTypeChecking": "Conta corrente",
+  "accountTypeSavings": "Poupança",
+  "accountTypeCash": "Dinheiro",
+  "addCardTitle": "Novo cartão",
+  "addCardNameLabel": "Nome",
+  "addCardLimitLabel": "Limite (R$)",
+  "addCardClosingLabel": "Dia de fechamento (1–31)",
+  "addCardDueLabel": "Dia de vencimento (1–31)",
+  "addTransactionTitle": "Novo lançamento",
+  "addTransactionPaymentMethod": "Meio de pagamento",
+  "addTransactionExpense": "Despesa",
+  "addTransactionIncome": "Receita",
+  "addTransactionAmountLabel": "Valor (R$)",
+  "addTransactionCategoryLabel": "Categoria",
+  "addTransactionDescriptionLabel": "Descrição",
+  "addTransactionDateLabel": "Data",
+  "addTransactionAccountLabel": "Conta",
+  "addTransactionCardLabel": "Cartão",
+  "paymentPix": "Pix",
+  "paymentDebit": "Débito",
+  "paymentCredit": "Crédito",
+  "paymentBoleto": "Boleto",
+  "transactionKindExpense": "Despesa",
+  "transactionKindIncome": "Receita",
+  "commonSave": "Salvar",
+  "commonCancel": "Cancelar",
+  "commonExport": "Exportar…",
+  "commonImport": "Importar arquivo…",
+  "validationNameRequired": "Informe o nome",
+  "validationCategoryRequired": "Informe a categoria",
+  "validationDescriptionRequired": "Informe a descrição",
+  "validationValueRequired": "Informe o valor",
+  "validationInvalidValue": "Valor inválido",
+  "validationInvalidMonth": "Mês inválido",
+  "validationInvalidYear": "Ano inválido",
+  "validationTotalRequired": "Informe o total",
+  "validationLimitRequired": "Informe o limite",
+  "validationInvalidNumber": "Número inválido",
+  "validationBalanceHint": "Valor inválido (use 10,50 ou 10.50)",
+  "registerAccountFirst": "Cadastre uma conta primeiro.",
+  "registerCardFirst": "Cadastre um cartão primeiro.",
+  "daysInvalidRange": "Dias devem estar entre 1 e 31.",
+  "errorWithMessage": "Erro: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "errorSaveAccount": "Erro ao salvar: {message}",
+  "@errorSaveAccount": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "backupTitle": "Backup",
+  "backupSectionTitle": "Backup por ano (JSON)",
+  "backupDescription": "Exporta ou restaura dados de um ano civil. Nome sugerido: {fileName}.",
+  "@backupDescription": {
+    "placeholders": {
+      "fileName": {"type": "String"}
+    }
+  },
+  "backupYearLabel": "Ano do backup",
+  "backupSaveDialogTitle": "Salvar backup",
+  "backupGenerated": "Backup gerado. Escolha onde salvar.",
+  "backupExportFailed": "Falha ao exportar: {message}",
+  "@backupExportFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "backupReadFailed": "Não foi possível ler o arquivo.",
+  "backupInvalidJson": "JSON inválido: {message}",
+  "@backupInvalidJson": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  },
+  "restoreDialogTitle": "Restaurar backup?",
+  "restoreDialogBody": "Os lançamentos e faturas de {year} serão substituídos pelos dados do arquivo. Outros anos não são alterados.",
+  "@restoreDialogBody": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "restoreAction": "Restaurar",
+  "restoreDone": "Dados de {year} restaurados.",
+  "@restoreDone": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "restoreFailed": "Falha ao importar: {message}",
+  "@restoreFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
+  }
+}

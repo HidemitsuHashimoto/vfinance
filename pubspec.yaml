@@ -19,6 +19,7 @@ dependencies:
   intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -28,4 +29,5 @@ dev_dependencies:
   drift_dev: ^2.28.3
 
 flutter:
+  generate: true
   uses-material-design: true

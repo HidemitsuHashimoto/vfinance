@@ -5,7 +5,9 @@ import 'package:vfinance/app/vfinance_scope.dart';
 import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 import 'package:vfinance/presentation/formatting/amount_format.dart';
+import 'package:vfinance/presentation/l10n/transaction_labels.dart';
 
 /// Lists finance transactions (newest first).
 class TransactionsScreen extends StatefulWidget {
@@ -32,8 +34,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Lançamentos')),
+      appBar: AppBar(title: Text(l.transactionsTitle)),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_transactions',
         onPressed: () => context.push('/transactions/add'),
@@ -52,9 +55,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               final List<FinanceTransaction> rows =
                   snap.data ?? <FinanceTransaction>[];
               if (rows.isEmpty) {
-                return const Center(
-                  child: Text('Nenhum lançamento. Toque em + para adicionar.'),
-                );
+                return Center(child: Text(l.transactionsEmpty));
               }
               return ListView.separated(
                 itemCount: rows.length,
@@ -77,7 +78,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     title: Text(t.description),
                     subtitle: Text(
                       '${_dayFormat.format(d)} · '
-                      '${tt.storageName} · ${pm.storageName} · ${t.category}',
+                      '${labelTransactionType(l, tt)} · '
+                      '${labelPaymentMethod(l, pm)} · ${t.category}',
                     ),
                     trailing: Text(
                       formatCents(t.amountInCents),

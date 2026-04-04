@@ -3,6 +3,7 @@ import 'package:vfinance/app/pop_current_route.dart';
 import 'package:vfinance/app/vfinance_scope.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/money.dart';
+import 'package:vfinance/l10n/app_localizations.dart';
 
 /// Creates an account with optional initial balance (centavos).
 class AddAccountScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -46,15 +48,16 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
+        ).showSnackBar(SnackBar(content: Text(l.errorSaveAccount('$e'))));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Nova conta')),
+      appBar: AppBar(title: Text(l.addAccountTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -62,11 +65,11 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
           children: <Widget>[
             TextFormField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Nome'),
+              decoration: InputDecoration(labelText: l.addAccountNameLabel),
               textCapitalization: TextCapitalization.sentences,
               validator: (String? v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Informe o nome';
+                  return l.validationNameRequired;
                 }
                 return null;
               },
@@ -74,14 +77,17 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Tipo'),
-              items: const <DropdownMenuItem<String>>[
+              decoration: InputDecoration(labelText: l.addAccountTypeLabel),
+              items: <DropdownMenuItem<String>>[
                 DropdownMenuItem(
                   value: 'checking',
-                  child: Text('Conta corrente'),
+                  child: Text(l.accountTypeChecking),
                 ),
-                DropdownMenuItem(value: 'savings', child: Text('Poupança')),
-                DropdownMenuItem(value: 'cash', child: Text('Dinheiro')),
+                DropdownMenuItem(
+                  value: 'savings',
+                  child: Text(l.accountTypeSavings),
+                ),
+                DropdownMenuItem(value: 'cash', child: Text(l.accountTypeCash)),
               ],
               onChanged: (String? v) {
                 if (v != null) {
@@ -92,8 +98,8 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _balance,
-              decoration: const InputDecoration(
-                labelText: 'Saldo inicial (opcional)',
+              decoration: InputDecoration(
+                labelText: l.addAccountBalanceLabel,
                 hintText: '0,00',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -106,7 +112,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                 try {
                   Money.parseReais(v);
                 } catch (_) {
-                  return 'Valor inválido (use 10,50 ou 10.50)';
+                  return l.validationBalanceHint;
                 }
                 return null;
               },
@@ -114,7 +120,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => _submit(context),
-              child: const Text('Salvar'),
+              child: Text(l.commonSave),
             ),
           ],
         ),

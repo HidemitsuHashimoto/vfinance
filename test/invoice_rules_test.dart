@@ -95,35 +95,43 @@ void main() {
     });
   });
 
-  group('invoiceAffectsTotalUserBalance', () {
-    test('unpaid affects balance', () {
-      expect(invoiceAffectsTotalUserBalance(isPaid: false), isTrue);
+  group('invoiceShowsAsOpenInList', () {
+    test('unpaid shows as open in list', () {
+      expect(invoiceShowsAsOpenInList(isPaid: false), isTrue);
     });
 
-    test('paid does not affect balance', () {
-      expect(invoiceAffectsTotalUserBalance(isPaid: true), isFalse);
+    test('paid does not show as open in list', () {
+      expect(invoiceShowsAsOpenInList(isPaid: true), isFalse);
     });
   });
 
   group('openInvoiceBalanceInputsForTotal + computeTotalUserBalance', () {
-    test('only unpaid invoices reduce total; adjusted is respected', () {
-      final List<InvoiceBalanceDescriptor> descriptors =
-          <InvoiceBalanceDescriptor>[
-            const InvoiceBalanceDescriptor(totalInCents: 2_000, isPaid: false),
-            const InvoiceBalanceDescriptor(
-              totalInCents: 5_000,
-              adjustedTotalInCents: 4_200,
-              isPaid: false,
+    test(
+      'all invoices reduce total; paid flag ignored; adjusted is respected',
+      () {
+        final List<InvoiceBalanceDescriptor> descriptors =
+            <InvoiceBalanceDescriptor>[
+              const InvoiceBalanceDescriptor(
+                totalInCents: 2_000,
+                isPaid: false,
+              ),
+              const InvoiceBalanceDescriptor(
+                totalInCents: 5_000,
+                adjustedTotalInCents: 4_200,
+                isPaid: false,
+              ),
+              const InvoiceBalanceDescriptor(totalInCents: 9_000, isPaid: true),
+            ];
+        expect(
+          computeTotalUserBalance(
+            accountBalancesInCents: const <int>[30_000],
+            openInvoices: openInvoiceBalanceInputsForTotal(
+              invoices: descriptors,
             ),
-            const InvoiceBalanceDescriptor(totalInCents: 9_000, isPaid: true),
-          ];
-      expect(
-        computeTotalUserBalance(
-          accountBalancesInCents: const <int>[30_000],
-          openInvoices: openInvoiceBalanceInputsForTotal(invoices: descriptors),
-        ),
-        30_000 - 2_000 - 4_200,
-      );
-    });
+          ),
+          30_000 - 2_000 - 4_200 - 9_000,
+        );
+      },
+    );
   });
 }

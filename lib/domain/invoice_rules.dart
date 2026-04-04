@@ -59,23 +59,20 @@ int effectiveInvoiceTotalInCents({
   return adjustedTotalInCents ?? totalInCents;
 }
 
-/// Whether the invoice still reduces [computeTotalUserBalance].
-///
-/// Paid invoices are settled and omitted; unpaid invoices count (open cycle or
-/// closed-but-unpaid), matching [domain.md] “faturas abertas” vs paid.
-bool invoiceAffectsTotalUserBalance({required bool isPaid}) {
+/// UI hint for list rows only (e.g. cartões / faturas). Does **not** drive
+/// total balance math; [isPaid] is informational.
+bool invoiceShowsAsOpenInList({required bool isPaid}) {
   return !isPaid;
 }
 
-/// Yields [OpenInvoiceBalanceInput] only for invoices that still affect
-/// total user balance (unpaid), preserving raw and adjusted totals.
+/// Yields [OpenInvoiceBalanceInput] for every invoice (paid flag ignored).
+///
+/// Prefer [invoiceBalanceInputsDueInLocalRange] on the home dashboard so totals
+/// respect the selected month and due dates.
 Iterable<OpenInvoiceBalanceInput> openInvoiceBalanceInputsForTotal({
   required Iterable<InvoiceBalanceDescriptor> invoices,
 }) sync* {
   for (final InvoiceBalanceDescriptor i in invoices) {
-    if (!invoiceAffectsTotalUserBalance(isPaid: i.isPaid)) {
-      continue;
-    }
     yield OpenInvoiceBalanceInput(
       totalInCents: i.totalInCents,
       adjustedTotalInCents: i.adjustedTotalInCents,

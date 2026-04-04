@@ -39,8 +39,7 @@ int computeBalanceAfterTransaction({
 
 /// Sum of account balances minus sum of [openInvoices] effective totals.
 ///
-/// Pass only invoices that are **open** (not paid / still owing); closed
-/// invoices must be omitted by the caller.
+/// Callers choose which invoices to include (e.g. by due date in a month).
 int computeTotalUserBalance({
   required Iterable<int> accountBalancesInCents,
   required Iterable<OpenInvoiceBalanceInput> openInvoices,
