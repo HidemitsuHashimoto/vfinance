@@ -7,6 +7,7 @@ import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/data/local/pay_cycle_anchor_store.dart';
 import 'package:vfinance/domain/balance_period_rules.dart';
 import 'package:vfinance/domain/balance_rules.dart';
+import 'package:vfinance/domain/credit_card_billing.dart';
 import 'package:vfinance/l10n/app_localizations.dart';
 import 'package:vfinance/presentation/formatting/amount_format.dart';
 
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Stream<List<Invoice>>? _invoicesStream;
   Stream<List<CreditCard>>? _cardsStream;
   Stream<List<FinanceTransaction>>? _transactionsStream;
+  PayCycleAnchorStore? _attachedPayCycleAnchors;
 
   @override
   void didChangeDependencies() {
@@ -35,6 +37,26 @@ class _HomeScreenState extends State<HomeScreen> {
       _invoicesStream = repo.watchInvoices();
       _cardsStream = repo.watchCreditCards();
       _transactionsStream = repo.watchFinanceTransactions();
+    }
+    final PayCycleAnchorStore payAnchors = VfinanceScope.payCycleAnchorsOf(
+      context,
+    );
+    if (_attachedPayCycleAnchors != payAnchors) {
+      _attachedPayCycleAnchors?.removeListener(_onPayCycleAnchorsChanged);
+      _attachedPayCycleAnchors = payAnchors;
+      _attachedPayCycleAnchors!.addListener(_onPayCycleAnchorsChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    _attachedPayCycleAnchors?.removeListener(_onPayCycleAnchorsChanged);
+    super.dispose();
+  }
+
+  void _onPayCycleAnchorsChanged() {
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -76,150 +98,152 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return StreamBuilder<List<Invoice>>(
             stream: _invoicesStream!,
-            builder:
-                (BuildContext context, AsyncSnapshot<List<Invoice>> snapI) {
-                  if (snapI.hasError) {
-                    return _ErrorMessage(message: '${snapI.error}');
-                  }
-                  return StreamBuilder<List<CreditCard>>(
-                    stream: _cardsStream!,
-                    builder:
-                        (
-                          BuildContext context,
-                          AsyncSnapshot<List<CreditCard>> snapC,
-                        ) {
-                          if (snapC.hasError) {
-                            return _ErrorMessage(message: '${snapC.error}');
-                          }
-                          return StreamBuilder<List<FinanceTransaction>>(
-                            stream: _transactionsStream!,
-                            builder:
-                                (
-                                  BuildContext context,
-                                  AsyncSnapshot<List<FinanceTransaction>> snapT,
-                                ) {
-                                  if (snapT.hasError) {
-                                    return _ErrorMessage(
-                                      message: '${snapT.error}',
-                                    );
-                                  }
-                                  final List<Account> accounts =
-                                      snapA.data ?? <Account>[];
-                                  final List<Invoice> invoices =
-                                      snapI.data ?? <Invoice>[];
-                                  final List<CreditCard> cards =
-                                      snapC.data ?? <CreditCard>[];
-                                  final List<FinanceTransaction> transactions =
-                                      snapT.data ?? <FinanceTransaction>[];
-                                  if (anchorDays.isEmpty) {
-                                    return _PaycheckEmptyState(
-                                      l: l,
-                                      theme: theme,
-                                      onConfigure: () =>
-                                          _openPayCycleDialog(context),
-                                    );
-                                  }
-                                  final DateTime todayLocal = DateTime.now();
-                                  final Map<int, CardDueDescriptor> cardById =
-                                      <int, CardDueDescriptor>{
-                                        for (final CreditCard c in cards)
-                                          c.id: CardDueDescriptor(
-                                            id: c.id,
-                                            dueDay: c.dueDay,
-                                          ),
-                                      };
-                                  final List<Widget> cardsWidgets = <Widget>[];
-                                  for (final int anchorDay in anchorDays) {
-                                    final (
-                                      DateTime rangeStart,
-                                      DateTime rangeEnd,
-                                    ) = payCycleLocalBoundsForAnchorDay(
-                                      todayLocal: todayLocal,
-                                      anchorDay: anchorDay,
-                                    );
-                                    final List<OpenInvoiceBalanceInput>
-                                    invoiceInputs =
-                                        invoiceBalanceInputsDueInLocalRange(
-                                          invoices: invoices.map(
-                                            (Invoice i) => InvoiceCycleSnapshot(
-                                              cardId: i.cardId,
-                                              year: i.year,
-                                              month: i.month,
-                                              totalInCents: i.totalInCents,
-                                              adjustedTotalInCents:
-                                                  i.adjustedTotalInCents,
-                                            ),
-                                          ),
-                                          cardById: cardById,
-                                          rangeStartLocal: rangeStart,
-                                          rangeEndLocal: rangeEnd,
-                                        ).toList();
-                                    final int totalCents =
-                                        computeTotalUserBalance(
-                                          accountBalancesInCents: accounts.map(
-                                            (Account a) => a.balanceInCents,
-                                          ),
-                                          openInvoices: invoiceInputs,
-                                        );
-                                    final int invoicesDueCount =
-                                        invoiceInputs.length;
-                                    final ({
-                                      int incomeCents,
-                                      int immediateExpenseCents,
-                                    })
-                                    flow = summarizeCashflowInLocalRange(
+            builder: (BuildContext context, AsyncSnapshot<List<Invoice>> snapI) {
+              if (snapI.hasError) {
+                return _ErrorMessage(message: '${snapI.error}');
+              }
+              return StreamBuilder<List<CreditCard>>(
+                stream: _cardsStream!,
+                builder:
+                    (
+                      BuildContext context,
+                      AsyncSnapshot<List<CreditCard>> snapC,
+                    ) {
+                      if (snapC.hasError) {
+                        return _ErrorMessage(message: '${snapC.error}');
+                      }
+                      return StreamBuilder<List<FinanceTransaction>>(
+                        stream: _transactionsStream!,
+                        builder:
+                            (
+                              BuildContext context,
+                              AsyncSnapshot<List<FinanceTransaction>> snapT,
+                            ) {
+                              if (snapT.hasError) {
+                                return _ErrorMessage(message: '${snapT.error}');
+                              }
+                              final List<Account> accounts =
+                                  snapA.data ?? <Account>[];
+                              final List<Invoice> invoices =
+                                  snapI.data ?? <Invoice>[];
+                              final List<CreditCard> cards =
+                                  snapC.data ?? <CreditCard>[];
+                              final List<FinanceTransaction> transactions =
+                                  snapT.data ?? <FinanceTransaction>[];
+                              if (anchorDays.isEmpty) {
+                                return _PaycheckEmptyState(
+                                  l: l,
+                                  theme: theme,
+                                  onConfigure: () =>
+                                      _openPayCycleDialog(context),
+                                );
+                              }
+                              final DateTime todayLocal = DateTime.now();
+                              final List<Widget> cardsWidgets = <Widget>[];
+                              for (final int anchorDay in anchorDays) {
+                                final (
+                                  DateTime rangeStart,
+                                  DateTime rangeEnd,
+                                ) = payCycleLocalBoundsForAnchorDay(
+                                  todayLocal: todayLocal,
+                                  anchorDay: anchorDay,
+                                );
+                                final List<OpenInvoiceBalanceInput>
+                                invoiceInputs =
+                                    CreditCardBilling.openInvoiceBalanceInputsDueInLocalRange(
+                                      cards: cards.map(
+                                        (CreditCard c) => CreditCardBillingCard(
+                                          id: c.id,
+                                          closingDay: c.closingDay,
+                                          dueDay: c.dueDay,
+                                        ),
+                                      ),
                                       transactions: transactions.map(
                                         (FinanceTransaction t) =>
-                                            TransactionTimelineRow(
+                                            CreditCardBillingTransaction(
                                               amountInCents: t.amountInCents,
                                               transactionTypeStorage:
                                                   t.transactionType,
                                               paymentMethodStorage:
                                                   t.paymentMethod,
                                               dateUtcMillis: t.dateUtcMillis,
+                                              cardId: t.cardId,
                                             ),
+                                      ),
+                                      invoices: invoices.map(
+                                        (Invoice i) => CreditCardBillingInvoice(
+                                          cardId: i.cardId,
+                                          year: i.year,
+                                          month: i.month,
+                                          adjustedTotalInCents:
+                                              i.adjustedTotalInCents,
+                                        ),
                                       ),
                                       rangeStartLocal: rangeStart,
                                       rangeEndLocal: rangeEnd,
-                                    );
-                                    final String startLabel = DateFormat.yMd(
-                                      'pt_BR',
-                                    ).format(rangeStart);
-                                    final String endLabel = DateFormat.yMd(
-                                      'pt_BR',
-                                    ).format(rangeEnd);
-                                    if (cardsWidgets.isNotEmpty) {
-                                      cardsWidgets.add(
-                                        const SizedBox(height: 16),
-                                      );
-                                    }
-                                    cardsWidgets.add(
-                                      _PaycheckPeriodCard(
-                                        l: l,
-                                        theme: theme,
-                                        anchorDay: anchorDay,
-                                        intervalLabel: l.homePaycheckInterval(
-                                          startLabel,
-                                          endLabel,
+                                    ).toList();
+                                final int totalCents = computeTotalUserBalance(
+                                  accountBalancesInCents: accounts.map(
+                                    (Account a) => a.balanceInCents,
+                                  ),
+                                  openInvoices: invoiceInputs,
+                                );
+                                final int invoicesDueCount =
+                                    invoiceInputs.length;
+                                final ({
+                                  int incomeCents,
+                                  int immediateExpenseCents,
+                                })
+                                flow = summarizeCashflowInLocalRange(
+                                  transactions: transactions.map(
+                                    (FinanceTransaction t) =>
+                                        TransactionTimelineRow(
+                                          amountInCents: t.amountInCents,
+                                          transactionTypeStorage:
+                                              t.transactionType,
+                                          paymentMethodStorage: t.paymentMethod,
+                                          dateUtcMillis: t.dateUtcMillis,
                                         ),
-                                        totalCents: totalCents,
-                                        invoicesDueCount: invoicesDueCount,
-                                        accountsCount: accounts.length,
-                                        incomeCents: flow.incomeCents,
-                                        immediateExpenseCents:
-                                            flow.immediateExpenseCents,
-                                      ),
-                                    );
-                                  }
-                                  return ListView(
-                                    padding: const EdgeInsets.all(16),
-                                    children: cardsWidgets,
-                                  );
-                                },
-                          );
-                        },
-                  );
-                },
+                                  ),
+                                  rangeStartLocal: rangeStart,
+                                  rangeEndLocal: rangeEnd,
+                                );
+                                final String startLabel = DateFormat.yMd(
+                                  'pt_BR',
+                                ).format(rangeStart);
+                                final String endLabel = DateFormat.yMd(
+                                  'pt_BR',
+                                ).format(rangeEnd);
+                                if (cardsWidgets.isNotEmpty) {
+                                  cardsWidgets.add(const SizedBox(height: 16));
+                                }
+                                cardsWidgets.add(
+                                  _PaycheckPeriodCard(
+                                    l: l,
+                                    theme: theme,
+                                    anchorDay: anchorDay,
+                                    intervalLabel: l.homePaycheckInterval(
+                                      startLabel,
+                                      endLabel,
+                                    ),
+                                    totalCents: totalCents,
+                                    invoicesDueCount: invoicesDueCount,
+                                    accountsCount: accounts.length,
+                                    incomeCents: flow.incomeCents,
+                                    immediateExpenseCents:
+                                        flow.immediateExpenseCents,
+                                  ),
+                                );
+                              }
+                              return ListView(
+                                padding: const EdgeInsets.all(16),
+                                children: cardsWidgets,
+                              );
+                            },
+                      );
+                    },
+              );
+            },
           );
         },
       ),

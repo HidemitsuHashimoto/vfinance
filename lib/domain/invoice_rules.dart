@@ -1,3 +1,4 @@
+import 'package:vfinance/domain/balance_period_rules.dart';
 import 'package:vfinance/domain/balance_rules.dart';
 
 /// Calendar month identifying an invoice cycle (year + month 1–12).
@@ -25,6 +26,43 @@ final class InvoiceCycleMonth {
 ///
 /// Uses [purchaseDate]’s `year`, `month`, and `day` as the user’s calendar
 /// date (normalize to local date before calling when stored as UTC instant).
+/// Inclusive local calendar bounds for purchase dates that bill in the
+/// invoice cycle [cycleYear]/[cycleMonth] for [closingDay] (same rule as
+/// [computeInvoiceCycleMonth]).
+(DateTime startInclusive, DateTime endInclusive)
+invoiceCyclePurchaseInclusiveBounds({
+  required int cycleYear,
+  required int cycleMonth,
+  required int closingDay,
+}) {
+  if (closingDay < 1 || closingDay > 31) {
+    throw ArgumentError.value(closingDay, 'closingDay', 'expected 1..31');
+  }
+  final DateTime endInclusive = invoiceDueDateForCycle(
+    cycleYear: cycleYear,
+    cycleMonth: cycleMonth,
+    dueDay: closingDay,
+  );
+  final DateTime prevMonthStart = DateTime(cycleYear, cycleMonth - 1, 1);
+  final int lastDayPrevMonth = DateTime(
+    prevMonthStart.year,
+    prevMonthStart.month + 1,
+    0,
+  ).day;
+  final int rawStartDay = closingDay + 1;
+  final DateTime startInclusive;
+  if (rawStartDay <= lastDayPrevMonth) {
+    startInclusive = DateTime(
+      prevMonthStart.year,
+      prevMonthStart.month,
+      rawStartDay,
+    );
+  } else {
+    startInclusive = DateTime(cycleYear, cycleMonth, 1);
+  }
+  return (startInclusive, endInclusive);
+}
+
 InvoiceCycleMonth computeInvoiceCycleMonth({
   required DateTime purchaseDate,
   required int closingDay,
@@ -67,8 +105,8 @@ bool invoiceShowsAsOpenInList({required bool isPaid}) {
 
 /// Yields [OpenInvoiceBalanceInput] for every invoice (paid flag ignored).
 ///
-/// Prefer [invoiceBalanceInputsDueInLocalRange] on the home dashboard so totals
-/// respect the selected month and due dates.
+/// Prefer `CreditCardBilling.openInvoiceBalanceInputsDueInLocalRange` on the
+/// home dashboard so totals respect pay periods and due dates.
 Iterable<OpenInvoiceBalanceInput> openInvoiceBalanceInputsForTotal({
   required Iterable<InvoiceBalanceDescriptor> invoices,
 }) sync* {

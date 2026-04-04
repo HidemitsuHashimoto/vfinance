@@ -108,7 +108,12 @@ void main() {
     );
     expect(invRows, hasLength(1));
     expect(invRows.single.id, 88);
-    expect(invRows.single.totalInCents, 300);
+    expect(
+      invRows.single.totalInCents,
+      0,
+      reason:
+          'invoice totals are recomputed from credit transactions on import',
+    );
     expect(invRows.single.adjustedTotalInCents, 290);
   });
 }

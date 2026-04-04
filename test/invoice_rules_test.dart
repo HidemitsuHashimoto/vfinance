@@ -3,6 +3,39 @@ import 'package:vfinance/domain/balance_rules.dart';
 import 'package:vfinance/domain/invoice_rules.dart';
 
 void main() {
+  group('invoiceCyclePurchaseInclusiveBounds', () {
+    test('March cycle closing 17 spans Feb 18 through Mar 17', () {
+      final (DateTime start, DateTime end) = invoiceCyclePurchaseInclusiveBounds(
+        cycleYear: 2026,
+        cycleMonth: 3,
+        closingDay: 17,
+      );
+      expect(start, DateTime(2026, 2, 18));
+      expect(end, DateTime(2026, 3, 17));
+    });
+
+    test('March cycle closing 31 is full March when previous month shorter', () {
+      final (DateTime start, DateTime end) = invoiceCyclePurchaseInclusiveBounds(
+        cycleYear: 2026,
+        cycleMonth: 3,
+        closingDay: 31,
+      );
+      expect(start, DateTime(2026, 3, 1));
+      expect(end, DateTime(2026, 3, 31));
+    });
+
+    test('rejects closingDay outside 1..31', () {
+      expect(
+        () => invoiceCyclePurchaseInclusiveBounds(
+          cycleYear: 2026,
+          cycleMonth: 3,
+          closingDay: 0,
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
   group('computeInvoiceCycleMonth', () {
     test('purchase on or before closingDay stays in current month', () {
       expect(

@@ -37,6 +37,22 @@ int computeBalanceAfterTransaction({
   };
 }
 
+/// Reverses [computeBalanceAfterTransaction] for the same inputs (non-credit).
+int computeBalanceAfterRemovingTransaction({
+  required int accountBalanceInCents,
+  required int transactionAmountInCents,
+  required TransactionType transactionType,
+  required PaymentMethod paymentMethod,
+}) {
+  if (paymentMethod == PaymentMethod.credit) {
+    return accountBalanceInCents;
+  }
+  return switch (transactionType) {
+    TransactionType.expense => accountBalanceInCents + transactionAmountInCents,
+    TransactionType.income => accountBalanceInCents - transactionAmountInCents,
+  };
+}
+
 /// Sum of account balances minus sum of [openInvoices] effective totals.
 ///
 /// Callers choose which invoices to include (e.g. by due date in a month).

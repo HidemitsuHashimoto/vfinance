@@ -65,6 +65,44 @@ void main() {
     });
   });
 
+  group('computeBalanceAfterRemovingTransaction', () {
+    test('undo expense on debit restores balance', () {
+      expect(
+        computeBalanceAfterRemovingTransaction(
+          accountBalanceInCents: 6_500,
+          transactionAmountInCents: 3_500,
+          transactionType: TransactionType.expense,
+          paymentMethod: PaymentMethod.debit,
+        ),
+        10_000,
+      );
+    });
+
+    test('undo income on pix reduces balance', () {
+      expect(
+        computeBalanceAfterRemovingTransaction(
+          accountBalanceInCents: 1_250,
+          transactionAmountInCents: 250,
+          transactionType: TransactionType.income,
+          paymentMethod: PaymentMethod.pix,
+        ),
+        1_000,
+      );
+    });
+
+    test('credit leaves balance unchanged on undo', () {
+      expect(
+        computeBalanceAfterRemovingTransaction(
+          accountBalanceInCents: 5_000,
+          transactionAmountInCents: 9_999,
+          transactionType: TransactionType.expense,
+          paymentMethod: PaymentMethod.credit,
+        ),
+        5_000,
+      );
+    });
+  });
+
   group('computeTotalUserBalance', () {
     test('sums accounts only when there are no open invoices', () {
       expect(

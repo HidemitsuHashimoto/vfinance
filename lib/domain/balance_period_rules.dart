@@ -1,30 +1,5 @@
-import 'package:vfinance/domain/balance_rules.dart';
+import 'package:vfinance/domain/finance_calendar_date.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
-
-/// Minimal invoice row for period / due-date balance math.
-final class InvoiceCycleSnapshot {
-  const InvoiceCycleSnapshot({
-    required this.cardId,
-    required this.year,
-    required this.month,
-    required this.totalInCents,
-    this.adjustedTotalInCents,
-  });
-
-  final int cardId;
-  final int year;
-  final int month;
-  final int totalInCents;
-  final int? adjustedTotalInCents;
-}
-
-/// Card id and billing due day (1–31).
-final class CardDueDescriptor {
-  const CardDueDescriptor({required this.id, required this.dueDay});
-
-  final int id;
-  final int dueDay;
-}
 
 /// Transaction row for summarizing cashflow in a local date range.
 final class TransactionTimelineRow {
@@ -123,37 +98,6 @@ payCycleLocalBoundsForAnchorDay({
   return (cycleStart, endInclusive);
 }
 
-/// Invoices whose due date falls in the local range (ignores paid flag).
-Iterable<OpenInvoiceBalanceInput> invoiceBalanceInputsDueInLocalRange({
-  required Iterable<InvoiceCycleSnapshot> invoices,
-  required Map<int, CardDueDescriptor> cardById,
-  required DateTime rangeStartLocal,
-  required DateTime rangeEndLocal,
-}) sync* {
-  for (final InvoiceCycleSnapshot inv in invoices) {
-    final CardDueDescriptor? card = cardById[inv.cardId];
-    if (card == null) {
-      continue;
-    }
-    final DateTime due = invoiceDueDateForCycle(
-      cycleYear: inv.year,
-      cycleMonth: inv.month,
-      dueDay: card.dueDay,
-    );
-    if (!_isDateOnlyInRange(
-      date: due,
-      rangeStartLocal: rangeStartLocal,
-      rangeEndLocal: rangeEndLocal,
-    )) {
-      continue;
-    }
-    yield OpenInvoiceBalanceInput(
-      totalInCents: inv.totalInCents,
-      adjustedTotalInCents: inv.adjustedTotalInCents,
-    );
-  }
-}
-
 /// Sums income and immediate (non-credit) expenses whose **local** calendar
 /// date lies in the range.
 ({int incomeCents, int immediateExpenseCents}) summarizeCashflowInLocalRange({
@@ -164,13 +108,11 @@ Iterable<OpenInvoiceBalanceInput> invoiceBalanceInputsDueInLocalRange({
   int incomeCents = 0;
   int immediateExpenseCents = 0;
   for (final TransactionTimelineRow t in transactions) {
-    final DateTime utc = DateTime.fromMillisecondsSinceEpoch(
+    final DateTime localCivil = localCivilDateFromFinanceEpochMillis(
       t.dateUtcMillis,
-      isUtc: true,
     );
-    final DateTime local = utc.toLocal();
     if (!_isDateOnlyInRange(
-      date: local,
+      date: localCivil,
       rangeStartLocal: rangeStartLocal,
       rangeEndLocal: rangeEndLocal,
     )) {

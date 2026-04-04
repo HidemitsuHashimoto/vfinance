@@ -47,7 +47,13 @@
   "homePeriodImmediateExpenses": "Despesas imediatas no período (exceto cartão)",
   "cardsTitle": "Cartões",
   "cardsEmpty": "Nenhum cartão. Toque em + para criar.",
-  "cardsNewInvoice": "Nova fatura",
+  "cardsNewExpense": "Novo gasto",
+  "cardsAdjustInvoice": "Ajustar fatura",
+  "cardsSheetAdjustInvoice": "Ajustar fatura do ciclo",
+  "cardsAdjustInvoiceHint": "O total da fatura vem dos gastos no cartão. Informe o valor ajustado se for diferente do que o banco cobrar.",
+  "cardsSaveAdjustment": "Salvar ajuste",
+  "addCardExpenseTitle": "Gasto no cartão",
+  "editCardExpenseTitle": "Editar gasto no cartão",
   "cardsNoInvoices": "Sem faturas registradas",
   "cardsClosesOn": "Fecha dia {day}",
   "@cardsClosesOn": {
@@ -67,13 +73,15 @@
       "amount": {"type": "String"}
     }
   },
-  "cardsInvoiceLine": "Fatura {month}/{year}",
-  "@cardsInvoiceLine": {
+  "cardsInvoiceCycleSummary": "Compras de {start} a {end} · Venc. {due}",
+  "@cardsInvoiceCycleSummary": {
     "placeholders": {
-      "month": {"type": "String"},
-      "year": {"type": "String"}
+      "start": {"type": "String"},
+      "end": {"type": "String"},
+      "due": {"type": "String"}
     }
   },
+  "cardsNoExpensesInCycle": "Nenhum gasto neste ciclo",
   "cardsTotalAdjusted": "Total {total} · Ajustado {adjusted}",
   "@cardsTotalAdjusted": {
     "placeholders": {
@@ -89,14 +97,9 @@
   },
   "cardsStatusOpen": "Em aberto",
   "cardsStatusPaid": "Paga",
-  "cardsSheetNewInvoice": "Nova fatura",
   "cardsMonthField": "Mês (1–12)",
   "cardsYearField": "Ano",
-  "cardsTotalField": "Total (R$)",
   "cardsAdjustedField": "Total ajustado (opcional, R$)",
-  "cardsClosedSwitch": "Fatura fechada",
-  "cardsPaidSwitch": "Fatura paga",
-  "cardsSaveInvoice": "Salvar fatura",
   "transactionsTitle": "Lançamentos",
   "transactionsEmpty": "Nenhum lançamento. Toque em + para adicionar.",
   "accountsTitle": "Contas",
@@ -130,6 +133,19 @@
   "transactionKindExpense": "Despesa",
   "transactionKindIncome": "Receita",
   "commonSave": "Salvar",
+  "menuEdit": "Editar",
+  "menuDelete": "Excluir",
+  "deleteAction": "Excluir",
+  "deleteConfirmTitle": "Confirmar exclusão",
+  "deleteConfirmAccountBody": "Excluir esta conta? Só é possível se não houver lançamentos vinculados a ela.",
+  "deleteConfirmCardBody": "Excluir este cartão? Só é possível se não houver lançamentos nem faturas vinculados.",
+  "deleteConfirmTransactionBody": "Excluir este lançamento? O saldo da conta e totais de fatura serão ajustados.",
+  "deleteConfirmCardExpenseBody": "Excluir este gasto no cartão? O total da fatura será recalculado.",
+  "editAccountTitle": "Editar conta",
+  "editCardTitle": "Editar cartão",
+  "editTransactionTitle": "Editar lançamento",
+  "errorDeleteAccountBlocked": "Não é possível excluir: existem lançamentos usando esta conta.",
+  "errorDeleteCardBlocked": "Não é possível excluir: existem lançamentos ou faturas usando este cartão.",
   "commonCancel": "Cancelar",
   "commonExport": "Exportar…",
   "commonImport": "Importar arquivo…",

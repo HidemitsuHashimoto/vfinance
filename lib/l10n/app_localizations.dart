@@ -250,11 +250,47 @@ abstract class AppLocalizations {
   /// **'Nenhum cartão. Toque em + para criar.'**
   String get cardsEmpty;
 
-  /// No description provided for @cardsNewInvoice.
+  /// No description provided for @cardsNewExpense.
   ///
   /// In pt, this message translates to:
-  /// **'Nova fatura'**
-  String get cardsNewInvoice;
+  /// **'Novo gasto'**
+  String get cardsNewExpense;
+
+  /// No description provided for @cardsAdjustInvoice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ajustar fatura'**
+  String get cardsAdjustInvoice;
+
+  /// No description provided for @cardsSheetAdjustInvoice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ajustar fatura do ciclo'**
+  String get cardsSheetAdjustInvoice;
+
+  /// No description provided for @cardsAdjustInvoiceHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'O total da fatura vem dos gastos no cartão. Informe o valor ajustado se for diferente do que o banco cobrar.'**
+  String get cardsAdjustInvoiceHint;
+
+  /// No description provided for @cardsSaveAdjustment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvar ajuste'**
+  String get cardsSaveAdjustment;
+
+  /// No description provided for @addCardExpenseTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gasto no cartão'**
+  String get addCardExpenseTitle;
+
+  /// No description provided for @editCardExpenseTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar gasto no cartão'**
+  String get editCardExpenseTitle;
 
   /// No description provided for @cardsNoInvoices.
   ///
@@ -280,11 +316,17 @@ abstract class AppLocalizations {
   /// **'Limite {amount}'**
   String cardsLimit(String amount);
 
-  /// No description provided for @cardsInvoiceLine.
+  /// No description provided for @cardsInvoiceCycleSummary.
   ///
   /// In pt, this message translates to:
-  /// **'Fatura {month}/{year}'**
-  String cardsInvoiceLine(String month, String year);
+  /// **'Compras de {start} a {end} · Venc. {due}'**
+  String cardsInvoiceCycleSummary(String start, String end, String due);
+
+  /// No description provided for @cardsNoExpensesInCycle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum gasto neste ciclo'**
+  String get cardsNoExpensesInCycle;
 
   /// No description provided for @cardsTotalAdjusted.
   ///
@@ -310,12 +352,6 @@ abstract class AppLocalizations {
   /// **'Paga'**
   String get cardsStatusPaid;
 
-  /// No description provided for @cardsSheetNewInvoice.
-  ///
-  /// In pt, this message translates to:
-  /// **'Nova fatura'**
-  String get cardsSheetNewInvoice;
-
   /// No description provided for @cardsMonthField.
   ///
   /// In pt, this message translates to:
@@ -328,35 +364,11 @@ abstract class AppLocalizations {
   /// **'Ano'**
   String get cardsYearField;
 
-  /// No description provided for @cardsTotalField.
-  ///
-  /// In pt, this message translates to:
-  /// **'Total (R\$)'**
-  String get cardsTotalField;
-
   /// No description provided for @cardsAdjustedField.
   ///
   /// In pt, this message translates to:
   /// **'Total ajustado (opcional, R\$)'**
   String get cardsAdjustedField;
-
-  /// No description provided for @cardsClosedSwitch.
-  ///
-  /// In pt, this message translates to:
-  /// **'Fatura fechada'**
-  String get cardsClosedSwitch;
-
-  /// No description provided for @cardsPaidSwitch.
-  ///
-  /// In pt, this message translates to:
-  /// **'Fatura paga'**
-  String get cardsPaidSwitch;
-
-  /// No description provided for @cardsSaveInvoice.
-  ///
-  /// In pt, this message translates to:
-  /// **'Salvar fatura'**
-  String get cardsSaveInvoice;
 
   /// No description provided for @transactionsTitle.
   ///
@@ -555,6 +567,84 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Salvar'**
   String get commonSave;
+
+  /// No description provided for @menuEdit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar'**
+  String get menuEdit;
+
+  /// No description provided for @menuDelete.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir'**
+  String get menuDelete;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir'**
+  String get deleteAction;
+
+  /// No description provided for @deleteConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confirmar exclusão'**
+  String get deleteConfirmTitle;
+
+  /// No description provided for @deleteConfirmAccountBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir esta conta? Só é possível se não houver lançamentos vinculados a ela.'**
+  String get deleteConfirmAccountBody;
+
+  /// No description provided for @deleteConfirmCardBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir este cartão? Só é possível se não houver lançamentos nem faturas vinculados.'**
+  String get deleteConfirmCardBody;
+
+  /// No description provided for @deleteConfirmTransactionBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir este lançamento? O saldo da conta e totais de fatura serão ajustados.'**
+  String get deleteConfirmTransactionBody;
+
+  /// No description provided for @deleteConfirmCardExpenseBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir este gasto no cartão? O total da fatura será recalculado.'**
+  String get deleteConfirmCardExpenseBody;
+
+  /// No description provided for @editAccountTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar conta'**
+  String get editAccountTitle;
+
+  /// No description provided for @editCardTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar cartão'**
+  String get editCardTitle;
+
+  /// No description provided for @editTransactionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar lançamento'**
+  String get editTransactionTitle;
+
+  /// No description provided for @errorDeleteAccountBlocked.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não é possível excluir: existem lançamentos usando esta conta.'**
+  String get errorDeleteAccountBlocked;
+
+  /// No description provided for @errorDeleteCardBlocked.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não é possível excluir: existem lançamentos ou faturas usando este cartão.'**
+  String get errorDeleteCardBlocked;
 
   /// No description provided for @commonCancel.
   ///

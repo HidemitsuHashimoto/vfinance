@@ -111,7 +111,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cardsEmpty => 'Nenhum cartão. Toque em + para criar.';
 
   @override
-  String get cardsNewInvoice => 'Nova fatura';
+  String get cardsNewExpense => 'Novo gasto';
+
+  @override
+  String get cardsAdjustInvoice => 'Ajustar fatura';
+
+  @override
+  String get cardsSheetAdjustInvoice => 'Ajustar fatura do ciclo';
+
+  @override
+  String get cardsAdjustInvoiceHint =>
+      'O total da fatura vem dos gastos no cartão. Informe o valor ajustado se for diferente do que o banco cobrar.';
+
+  @override
+  String get cardsSaveAdjustment => 'Salvar ajuste';
+
+  @override
+  String get addCardExpenseTitle => 'Gasto no cartão';
+
+  @override
+  String get editCardExpenseTitle => 'Editar gasto no cartão';
 
   @override
   String get cardsNoInvoices => 'Sem faturas registradas';
@@ -132,9 +151,12 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String cardsInvoiceLine(String month, String year) {
-    return 'Fatura $month/$year';
+  String cardsInvoiceCycleSummary(String start, String end, String due) {
+    return 'Compras de $start a $end · Venc. $due';
   }
+
+  @override
+  String get cardsNoExpensesInCycle => 'Nenhum gasto neste ciclo';
 
   @override
   String cardsTotalAdjusted(String total, String adjusted) {
@@ -153,28 +175,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cardsStatusPaid => 'Paga';
 
   @override
-  String get cardsSheetNewInvoice => 'Nova fatura';
-
-  @override
   String get cardsMonthField => 'Mês (1–12)';
 
   @override
   String get cardsYearField => 'Ano';
 
   @override
-  String get cardsTotalField => 'Total (R\$)';
-
-  @override
   String get cardsAdjustedField => 'Total ajustado (opcional, R\$)';
-
-  @override
-  String get cardsClosedSwitch => 'Fatura fechada';
-
-  @override
-  String get cardsPaidSwitch => 'Fatura paga';
-
-  @override
-  String get cardsSaveInvoice => 'Salvar fatura';
 
   @override
   String get transactionsTitle => 'Lançamentos';
@@ -275,6 +282,51 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get commonSave => 'Salvar';
+
+  @override
+  String get menuEdit => 'Editar';
+
+  @override
+  String get menuDelete => 'Excluir';
+
+  @override
+  String get deleteAction => 'Excluir';
+
+  @override
+  String get deleteConfirmTitle => 'Confirmar exclusão';
+
+  @override
+  String get deleteConfirmAccountBody =>
+      'Excluir esta conta? Só é possível se não houver lançamentos vinculados a ela.';
+
+  @override
+  String get deleteConfirmCardBody =>
+      'Excluir este cartão? Só é possível se não houver lançamentos nem faturas vinculados.';
+
+  @override
+  String get deleteConfirmTransactionBody =>
+      'Excluir este lançamento? O saldo da conta e totais de fatura serão ajustados.';
+
+  @override
+  String get deleteConfirmCardExpenseBody =>
+      'Excluir este gasto no cartão? O total da fatura será recalculado.';
+
+  @override
+  String get editAccountTitle => 'Editar conta';
+
+  @override
+  String get editCardTitle => 'Editar cartão';
+
+  @override
+  String get editTransactionTitle => 'Editar lançamento';
+
+  @override
+  String get errorDeleteAccountBlocked =>
+      'Não é possível excluir: existem lançamentos usando esta conta.';
+
+  @override
+  String get errorDeleteCardBlocked =>
+      'Não é possível excluir: existem lançamentos ou faturas usando este cartão.';
 
   @override
   String get commonCancel => 'Cancelar';

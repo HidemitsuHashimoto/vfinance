@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vfinance/domain/balance_period_rules.dart';
-import 'package:vfinance/domain/balance_rules.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
 
 void main() {
@@ -60,65 +59,11 @@ void main() {
     });
   });
 
-  group('invoiceBalanceInputsDueInLocalRange', () {
-    test('includes invoice when due falls inside range', () {
-      final List<OpenInvoiceBalanceInput> inputs =
-          invoiceBalanceInputsDueInLocalRange(
-            invoices: const <InvoiceCycleSnapshot>[
-              InvoiceCycleSnapshot(
-                cardId: 1,
-                year: 2026,
-                month: 4,
-                totalInCents: 1_000,
-              ),
-            ],
-            cardById: const <int, CardDueDescriptor>{
-              1: CardDueDescriptor(id: 1, dueDay: 10),
-            },
-            rangeStartLocal: DateTime(2026, 4, 1),
-            rangeEndLocal: DateTime(2026, 4, 30),
-          ).toList();
-      expect(inputs.length, 1);
-      expect(inputs.single.effectiveTotalInCents, 1_000);
-    });
-
-    test('omits invoice when due is outside range', () {
-      final List<OpenInvoiceBalanceInput> inputs =
-          invoiceBalanceInputsDueInLocalRange(
-            invoices: const <InvoiceCycleSnapshot>[
-              InvoiceCycleSnapshot(
-                cardId: 1,
-                year: 2026,
-                month: 5,
-                totalInCents: 1_000,
-              ),
-            ],
-            cardById: const <int, CardDueDescriptor>{
-              1: CardDueDescriptor(id: 1, dueDay: 10),
-            },
-            rangeStartLocal: DateTime(2026, 4, 1),
-            rangeEndLocal: DateTime(2026, 4, 30),
-          ).toList();
-      expect(inputs, isEmpty);
-    });
-  });
-
   group('summarizeCashflowInLocalRange', () {
     test('sums income and non-credit expenses in local range', () {
-      final int millis = DateTime.utc(
-        2026,
-        4,
-        15,
-        15,
-        0,
-        0,
-      ).millisecondsSinceEpoch;
-      final DateTime local = DateTime.fromMillisecondsSinceEpoch(
-        millis,
-        isUtc: true,
-      ).toLocal();
-      final DateTime rangeStart = DateTime(local.year, local.month, 1);
-      final DateTime rangeEnd = DateTime(local.year, local.month + 1, 0);
+      final int millis = DateTime(2026, 4, 15).millisecondsSinceEpoch;
+      final DateTime rangeStart = DateTime(2026, 4, 1);
+      final DateTime rangeEnd = DateTime(2026, 4, 30);
       final ({int incomeCents, int immediateExpenseCents}) r =
           summarizeCashflowInLocalRange(
             transactions: <TransactionTimelineRow>[

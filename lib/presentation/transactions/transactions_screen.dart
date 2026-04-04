@@ -6,6 +6,7 @@ import 'package:vfinance/data/local/app_database.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
 import 'package:vfinance/l10n/app_localizations.dart';
+import 'package:vfinance/domain/finance_calendar_date.dart';
 import 'package:vfinance/presentation/formatting/amount_format.dart';
 import 'package:vfinance/presentation/l10n/transaction_labels.dart';
 
@@ -28,7 +29,44 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final FinanceLocalRepository repo = VfinanceScope.of(context);
     if (_repositoryForStreams != repo) {
       _repositoryForStreams = repo;
-      _transactionsStream = repo.watchFinanceTransactions();
+      _transactionsStream = repo.watchLedgerFinanceTransactions();
+    }
+  }
+
+  Future<void> _confirmDeleteTransaction(
+    BuildContext context,
+    FinanceTransaction row,
+  ) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) => AlertDialog(
+        title: Text(l.deleteConfirmTitle),
+        content: Text(l.deleteConfirmTransactionBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) {
+      return;
+    }
+    final FinanceLocalRepository repo = VfinanceScope.of(context);
+    try {
+      await repo.deleteFinanceTransaction(row.id);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.errorWithMessage('$e'))));
+      }
     }
   }
 
@@ -63,9 +101,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     const Divider(height: 1),
                 itemBuilder: (BuildContext context, int index) {
                   final FinanceTransaction t = rows[index];
-                  final DateTime d = DateTime.fromMillisecondsSinceEpoch(
+                  final DateTime civil = localCivilDateFromFinanceEpochMillis(
                     t.dateUtcMillis,
-                    isUtc: true,
+                  );
+                  final DateTime d = DateTime(
+                    civil.year,
+                    civil.month,
+                    civil.day,
                   );
                   final TransactionType tt = TransactionType.parseStorage(
                     t.transactionType,
@@ -81,10 +123,37 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       '${labelTransactionType(l, tt)} · '
                       '${labelPaymentMethod(l, pm)} · ${t.category}',
                     ),
-                    trailing: Text(
-                      formatCents(t.amountInCents),
-                      style: Theme.of(context).textTheme.titleSmall,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          formatCents(t.amountInCents),
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        PopupMenuButton<String>(
+                          onSelected: (String value) {
+                            if (value == 'edit') {
+                              context.push('/transactions/edit/${t.id}');
+                            }
+                            if (value == 'delete') {
+                              _confirmDeleteTransaction(context, t);
+                            }
+                          },
+                          itemBuilder: (BuildContext ctx) =>
+                              <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: Text(l.menuEdit),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Text(l.menuDelete),
+                                ),
+                              ],
+                        ),
+                      ],
                     ),
+                    onTap: () => context.push('/transactions/edit/${t.id}'),
                   );
                 },
               );

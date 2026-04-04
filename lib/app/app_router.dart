@@ -92,6 +92,14 @@ GoRouter createAppRouter() {
       ),
       GoRoute(
         parentNavigatorKey: appRootNavigatorKey,
+        path: '/accounts/edit/:id',
+        builder: (BuildContext context, GoRouterState state) {
+          final int id = int.parse(state.pathParameters['id']!);
+          return AddAccountScreen(accountId: id);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/transactions/add',
         builder: (BuildContext context, GoRouterState state) {
           return const AddTransactionScreen();
@@ -99,9 +107,47 @@ GoRouter createAppRouter() {
       ),
       GoRoute(
         parentNavigatorKey: appRootNavigatorKey,
+        path: '/transactions/edit/:id',
+        builder: (BuildContext context, GoRouterState state) {
+          final int id = int.parse(state.pathParameters['id']!);
+          return AddTransactionScreen(transactionId: id);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
+        path: '/cards/:cardId/add-expense',
+        builder: (BuildContext context, GoRouterState state) {
+          final int cardId = int.parse(state.pathParameters['cardId']!);
+          return AddTransactionScreen(
+            initialCardId: cardId,
+            forceCardCreditFlow: true,
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
+        path: '/cards/expense/edit/:id',
+        builder: (BuildContext context, GoRouterState state) {
+          final int id = int.parse(state.pathParameters['id']!);
+          return AddTransactionScreen(
+            transactionId: id,
+            forceCardCreditFlow: true,
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/cards/add',
         builder: (BuildContext context, GoRouterState state) {
           return const AddCardScreen();
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
+        path: '/cards/edit/:id',
+        builder: (BuildContext context, GoRouterState state) {
+          final int id = int.parse(state.pathParameters['id']!);
+          return AddCardScreen(cardId: id);
         },
       ),
     ],
