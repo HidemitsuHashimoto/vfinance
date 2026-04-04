@@ -218,5 +218,17 @@
     "placeholders": {
       "message": {"type": "String"}
     }
+  },
+  "backupDebugClearSectionTitle": "Desenvolvimento (debug)",
+  "backupDebugClearDescription": "Apaga todas as contas, cartões, lançamentos e faturas neste aparelho. Só aparece em builds de debug.",
+  "backupDebugClearButton": "Limpar todos os dados locais",
+  "backupDebugClearConfirmTitle": "Limpar tudo?",
+  "backupDebugClearConfirmBody": "Esta ação não pode ser desfeita. Exporte um backup antes, se precisar dos dados.",
+  "backupDebugClearDone": "Dados locais apagados.",
+  "backupDebugClearFailed": "Falha ao limpar: {message}",
+  "@backupDebugClearFailed": {
+    "placeholders": {
+      "message": {"type": "String"}
+    }
   }
 }

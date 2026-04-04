@@ -609,6 +609,16 @@ class FinanceLocalRepository {
     });
   }
 
+  /// Deletes every row in all tables (accounts, cards, transactions, invoices).
+  Future<void> clearAllLocalData() async {
+    await _db.transaction(() async {
+      await _db.delete(_db.financeTransactions).go();
+      await _db.delete(_db.invoices).go();
+      await _db.delete(_db.accounts).go();
+      await _db.delete(_db.creditCards).go();
+    });
+  }
+
   Future<int> _deleteFinanceTransactionsInUtcCalendarYear(int year) {
     final int start = DateTime.utc(year).millisecondsSinceEpoch;
     final int end = DateTime.utc(year + 1).millisecondsSinceEpoch;

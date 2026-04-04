@@ -442,4 +442,29 @@ class AppLocalizationsPt extends AppLocalizations {
   String restoreFailed(String message) {
     return 'Falha ao importar: $message';
   }
+
+  @override
+  String get backupDebugClearSectionTitle => 'Desenvolvimento (debug)';
+
+  @override
+  String get backupDebugClearDescription =>
+      'Apaga todas as contas, cartões, lançamentos e faturas neste aparelho. Só aparece em builds de debug.';
+
+  @override
+  String get backupDebugClearButton => 'Limpar todos os dados locais';
+
+  @override
+  String get backupDebugClearConfirmTitle => 'Limpar tudo?';
+
+  @override
+  String get backupDebugClearConfirmBody =>
+      'Esta ação não pode ser desfeita. Exporte um backup antes, se precisar dos dados.';
+
+  @override
+  String get backupDebugClearDone => 'Dados locais apagados.';
+
+  @override
+  String backupDebugClearFailed(String message) {
+    return 'Falha ao limpar: $message';
+  }
 }

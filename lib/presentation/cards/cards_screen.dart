@@ -462,72 +462,95 @@ class _InvoiceCycleTile extends StatelessWidget {
             (FinanceTransaction a, FinanceTransaction b) =>
                 b.dateUtcMillis.compareTo(a.dateUtcMillis),
           );
-    return ExpansionTile(
-      title: Text(
-        l.cardsInvoiceCycleSummary(
-          dateFormat.format(start),
-          dateFormat.format(end),
-          dateFormat.format(due),
-        ),
-      ),
-      subtitle: Text(
-        invoice.adjustedTotalInCents != null
-            ? l.cardsTotalAdjusted(
-                formatCents(invoice.totalInCents),
-                formatCents(invoice.adjustedTotalInCents!),
-              )
-            : l.cardsTotalOnly(formatCents(invoice.totalInCents)),
-      ),
-      trailing: Text(
-        invoiceShowsAsOpenInList(isPaid: invoice.isPaid)
-            ? l.cardsStatusOpen
-            : l.cardsStatusPaid,
-      ),
-      children: <Widget>[
-        if (expenses.isEmpty)
-          ListTile(dense: true, title: Text(l.cardsNoExpensesInCycle))
-        else
-          ...expenses.map(
-            (FinanceTransaction t) => ListTile(
-              dense: true,
-              title: Text(t.description),
-              subtitle: Text(
-                '${dateFormat.format(localCivilDateFromFinanceEpochMillis(t.dateUtcMillis))} · '
-                '${t.category}',
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    formatCents(t.amountInCents),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: (String value) {
-                      if (value == 'edit') {
-                        onEdit(t);
-                      }
-                      if (value == 'delete') {
-                        onDelete(t);
-                      }
-                    },
-                    itemBuilder: (BuildContext ctx) => <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text(l.menuEdit),
+    final ThemeData theme = Theme.of(context);
+    final String totalLine = invoice.adjustedTotalInCents != null
+        ? l.cardsTotalAdjusted(
+            formatCents(invoice.totalInCents),
+            formatCents(invoice.adjustedTotalInCents!),
+          )
+        : l.cardsTotalOnly(formatCents(invoice.totalInCents));
+    final String statusLine = invoiceShowsAsOpenInList(isPaid: invoice.isPaid)
+        ? l.cardsStatusOpen
+        : l.cardsStatusPaid;
+    return Card(
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        l.cardsInvoiceCycleSummary(
+                          dateFormat.format(start),
+                          dateFormat.format(end),
+                          dateFormat.format(due),
+                        ),
+                        style: theme.textTheme.titleSmall,
                       ),
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text(l.menuDelete),
-                      ),
+                      const SizedBox(height: 4),
+                      Text(totalLine, style: theme.textTheme.bodySmall),
                     ],
                   ),
-                ],
-              ),
-              onTap: () => onEdit(t),
+                ),
+                const SizedBox(width: 8),
+                Text(statusLine, style: theme.textTheme.labelMedium),
+              ],
             ),
           ),
-      ],
+          const Divider(height: 1),
+          if (expenses.isEmpty)
+            ListTile(dense: true, title: Text(l.cardsNoExpensesInCycle))
+          else
+            ...expenses.map(
+              (FinanceTransaction t) => ListTile(
+                dense: true,
+                title: Text(t.description),
+                subtitle: Text(
+                  '${dateFormat.format(localCivilDateFromFinanceEpochMillis(t.dateUtcMillis))} · '
+                  '${t.category}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      formatCents(t.amountInCents),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        if (value == 'edit') {
+                          onEdit(t);
+                        }
+                        if (value == 'delete') {
+                          onDelete(t);
+                        }
+                      },
+                      itemBuilder: (BuildContext ctx) =>
+                          <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Text(l.menuEdit),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Text(l.menuDelete),
+                            ),
+                          ],
+                    ),
+                  ],
+                ),
+                onTap: () => onEdit(t),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

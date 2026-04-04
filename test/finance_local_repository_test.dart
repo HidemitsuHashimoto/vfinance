@@ -259,4 +259,43 @@ void main() {
       throwsA(isA<AccountDeleteBlockedException>()),
     );
   });
+
+  test('clearAllLocalData removes every table row', () async {
+    final AppDatabase db = AppDatabase.memory();
+    addTearDown(db.close);
+    final FinanceLocalRepository repo = FinanceLocalRepository(db);
+    final int accountId = await repo.insertAccount(
+      name: 'C',
+      type: 'checking',
+      balanceInCents: 100,
+    );
+    final int cardId = await repo.insertCreditCard(
+      name: 'V',
+      limitInCents: 1_000,
+      closingDay: 10,
+      dueDay: 15,
+    );
+    await repo.insertFinanceTransaction(
+      amountInCents: 50,
+      transactionType: TransactionType.expense,
+      category: 'x',
+      description: 'y',
+      dateUtc: DateTime.utc(2026, 1, 1),
+      paymentMethod: PaymentMethod.debit,
+      accountId: accountId,
+    );
+    await repo.insertInvoice(
+      cardId: cardId,
+      month: 1,
+      year: 2026,
+      totalInCents: 0,
+      isClosed: false,
+      isPaid: false,
+    );
+    await repo.clearAllLocalData();
+    expect(await db.select(db.accounts).get(), isEmpty);
+    expect(await db.select(db.creditCards).get(), isEmpty);
+    expect(await db.select(db.financeTransactions).get(), isEmpty);
+    expect(await db.select(db.invoices).get(), isEmpty);
+  });
 }

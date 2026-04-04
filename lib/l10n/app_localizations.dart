@@ -843,6 +843,48 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Falha ao importar: {message}'**
   String restoreFailed(String message);
+
+  /// No description provided for @backupDebugClearSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvimento (debug)'**
+  String get backupDebugClearSectionTitle;
+
+  /// No description provided for @backupDebugClearDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga todas as contas, cartões, lançamentos e faturas neste aparelho. Só aparece em builds de debug.'**
+  String get backupDebugClearDescription;
+
+  /// No description provided for @backupDebugClearButton.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar todos os dados locais'**
+  String get backupDebugClearButton;
+
+  /// No description provided for @backupDebugClearConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar tudo?'**
+  String get backupDebugClearConfirmTitle;
+
+  /// No description provided for @backupDebugClearConfirmBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta ação não pode ser desfeita. Exporte um backup antes, se precisar dos dados.'**
+  String get backupDebugClearConfirmBody;
+
+  /// No description provided for @backupDebugClearDone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados locais apagados.'**
+  String get backupDebugClearDone;
+
+  /// No description provided for @backupDebugClearFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao limpar: {message}'**
+  String backupDebugClearFailed(String message);
 }
 
 class _AppLocalizationsDelegate

@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vfinance/app/vfinance_scope.dart';
 import 'package:vfinance/data/local/finance_local_repository.dart';
@@ -142,6 +142,56 @@ class _BackupScreenState extends State<BackupScreen> {
     }
   }
 
+  Future<void> _confirmClearAllDebug(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Text(l.backupDebugClearConfirmTitle),
+          content: Text(l.backupDebugClearConfirmBody),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.onError,
+                backgroundColor: Theme.of(ctx).colorScheme.error,
+              ),
+              child: Text(l.deleteAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (ok != true || !context.mounted) {
+      return;
+    }
+    final FinanceLocalRepository repo = VfinanceScope.of(context);
+    setState(() => _busy = true);
+    try {
+      await repo.clearAllLocalData();
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.backupDebugClearDone)));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.backupDebugClearFailed('$e'))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l = AppLocalizations.of(context)!;
@@ -188,6 +238,29 @@ class _BackupScreenState extends State<BackupScreen> {
             icon: const Icon(Icons.download_outlined),
             label: Text(l.commonImport),
           ),
+          if (kDebugMode) ...<Widget>[
+            const SizedBox(height: 32),
+            Text(
+              l.backupDebugClearSectionTitle,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l.backupDebugClearDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : () => _confirmClearAllDebug(context),
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: Text(l.backupDebugClearButton),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+            ),
+          ],
           if (_busy) ...<Widget>[
             const SizedBox(height: 24),
             const Center(child: CircularProgressIndicator()),
