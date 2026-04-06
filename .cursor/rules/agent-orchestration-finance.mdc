@@ -1,0 +1,80 @@
+---
+description: Mandatory multi-specialist orchestration for implementations
+alwaysApply: true
+---
+
+# Mandatory specialist orchestration for implementations
+
+This rule applies to this project only.
+
+## Objective
+
+For any implementation task, always use a multi-specialist workflow to improve
+domain quality, engineering quality, and delivery safety.
+
+## Mandatory policy
+
+- For every implementation, always trigger and use these specialists:
+  1. ProductOwnerFinanceSpecialist
+  2. FlutterFinanceDevelopmentSpecialist
+  3. QaAutomationSpecialist
+  4. FinancialMathSpecialist
+- If subagents are available in the environment, use the agents in
+  `.cursor/agents` as role definitions and run the specialists as subagents
+  before coding.
+- If subagents are not available, use the fallback skill:
+  `finance-multi-specialist-orchestrator`.
+- Never skip this orchestration for implementation tasks.
+
+## Recommended execution order
+
+1. ProductOwnerFinanceSpecialist
+2. FlutterFinanceDevelopmentSpecialist
+3. FinancialMathSpecialist
+4. QaAutomationSpecialist
+
+## Agent files
+
+- `.cursor/agents/product-owner-finance-agent.md`
+- `.cursor/agents/flutter-finance-development-agent.md`
+- `.cursor/agents/financial-math-agent.md`
+- `.cursor/agents/qa-automation-agent.md`
+
+## Specialist quality gates
+
+- ProductOwnerFinanceSpecialist
+  - Defines scope, acceptance criteria, and business risks.
+  - Checks alignment with financial consumer protection principles.
+- FlutterFinanceDevelopmentSpecialist
+  - Proposes architecture and implementation plan aligned with project rules.
+  - Ensures testability, maintainability, and safe handling of money values.
+- FinancialMathSpecialist
+  - Validates formulas, conventions, assumptions, and rounding behavior.
+  - Rejects imprecise math or unclear numeric assumptions.
+- QaAutomationSpecialist
+  - Defines test strategy and test cases by risk.
+  - Validates coverage for critical financial and regression scenarios.
+
+## Trusted references to prioritize
+
+- Flutter official docs:
+  - https://docs.flutter.dev/app-architecture
+  - https://docs.flutter.dev/testing/overview
+- Financial consumer protection:
+  - https://www.fsb.org/2022/12/cos_111104a/
+- Risk assessment:
+  - https://csrc.nist.gov/pubs/sp/800/30/r1/final
+- Brazil regulatory/open finance:
+  - https://dadosabertos.bcb.gov.br/
+  - https://openfinancebrasil.org.br/atos-normativos/
+- Test strategy:
+  - https://www.istqb.org/certifications/certified-tester-test-automation-strategy-ct-tas/
+
+## Expected final delivery format
+
+Before finalizing an implementation, provide:
+
+- Scope and acceptance criteria summary
+- Architecture and implementation decisions
+- Financial math validation notes
+- Automated test plan and evidence
