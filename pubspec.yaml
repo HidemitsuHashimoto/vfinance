@@ -9,13 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  meta: ^1.16.0
-  drift: ^2.28.2
+  meta: ^1.17.0
+  drift: ^2.32.1
   path: ^1.9.1
   path_provider: ^2.1.5
-  sqlite3_flutter_libs: ^0.5.41
+  sqlite3_flutter_libs: ^0.6.0+eol
   go_router: ^17.2.0
-  file_picker: ^10.3.10
+  file_picker: ^11.0.2
   intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
@@ -26,7 +26,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   build_runner: ^2.5.4
-  drift_dev: ^2.28.3
+  drift_dev: ^2.32.1
 
 flutter:
   generate: true

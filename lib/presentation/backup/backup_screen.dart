@@ -36,7 +36,7 @@ class _BackupScreenState extends State<BackupScreen> {
           .buildYearBackupForCalendarYear(_year);
       final String json = encodeYearBackupSnapshot(snapshot);
       final Uint8List bytes = Uint8List.fromList(utf8.encode(json));
-      await FilePicker.platform.saveFile(
+      await FilePicker.saveFile(
         dialogTitle: l.backupSaveDialogTitle,
         fileName: buildYearBackupFileName(_year),
         bytes: bytes,
@@ -64,7 +64,7 @@ class _BackupScreenState extends State<BackupScreen> {
   Future<void> _import(BuildContext context) async {
     final AppLocalizations l = AppLocalizations.of(context)!;
     final FinanceLocalRepository repo = VfinanceScope.of(context);
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: <String>['json'],
       withData: true,
