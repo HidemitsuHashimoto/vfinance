@@ -121,6 +121,17 @@
   "addTransactionExpense": "Despesa",
   "addTransactionIncome": "Receita",
   "addTransactionAmountLabel": "Valor (R$)",
+  "addCardExpenseInstallmentsLabel": "Parcelas",
+  "addCardExpenseInstallmentsHint": "O valor acima é o total; divide em parcelas iguais (1 = à vista).",
+  "addCardExpenseInstallmentLineDescription": "{base} · Parcela {current} de {total}",
+  "@addCardExpenseInstallmentLineDescription": {
+    "placeholders": {
+      "base": {"type": "String"},
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "validationInstallmentsRange": "Informe um número de parcelas entre 1 e 60.",
   "addTransactionCategoryLabel": "Categoria",
   "addTransactionDescriptionLabel": "Descrição",
   "addTransactionDateLabel": "Data",

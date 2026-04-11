@@ -37,8 +37,14 @@ void main() {
       expect(Money.parseReais('0.99').cents, 99);
     });
 
-    test('parses integer reais as centavos * 100', () {
-      expect(Money.parseReais('10').cents, 1000);
+    test('parses digit-only input as centavos', () {
+      expect(Money.parseReais('10').cents, 10);
+      expect(Money.parseReais('1050').cents, 1050);
+      expect(Money.parseReais('1141845').cents, 1141845);
+    });
+
+    test('parses digit-only negative centavos', () {
+      expect(Money.parseReais('-320').cents, -320);
     });
 
     test('truncates extra fractional digits like BigDecimal*100 toLong', () {

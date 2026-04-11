@@ -37,8 +37,11 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
+  static const int _maxInstallments = 60;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _amount = TextEditingController();
+  final TextEditingController _installments = TextEditingController(text: '1');
   final TextEditingController _category = TextEditingController();
   final TextEditingController _description = TextEditingController();
   TransactionType _type = TransactionType.expense;
@@ -116,6 +119,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   void dispose() {
     _amount.dispose();
+    _installments.dispose();
     _category.dispose();
     _description.dispose();
     super.dispose();
@@ -127,6 +131,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   bool _hideCreditForNewGlobalTransaction() {
     return widget.transactionId == null && !widget.forceCardCreditFlow;
+  }
+
+  /// Parses [_installments] when the card-expense flow shows the field;
+  /// otherwise returns [1].
+  int _parseInstallmentCount() {
+    if (!(widget.forceCardCreditFlow && widget.transactionId == null)) {
+      return 1;
+    }
+    final String raw = _installments.text.trim();
+    if (raw.isEmpty) {
+      return 1;
+    }
+    final int? parsed = int.tryParse(raw);
+    if (parsed == null) {
+      return 0;
+    }
+    return parsed;
   }
 
   int? _accountDropdownValue(List<Account> accounts) {
@@ -262,18 +283,42 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final DateTime dateForRepo = DateTime.fromMillisecondsSinceEpoch(
       _dateEpochMillis,
     );
+    final int installmentCount = _parseInstallmentCount();
     try {
       if (widget.transactionId == null) {
-        await repo.insertFinanceTransaction(
-          amountInCents: cents,
-          transactionType: _type,
-          category: _category.text.trim(),
-          description: _description.text.trim(),
-          dateUtc: dateForRepo,
-          paymentMethod: _method,
-          accountId: _needsAccount() ? accountId : null,
-          cardId: _needsCard() ? cardId : null,
-        );
+        final bool isNewCardInstallmentFlow =
+            widget.forceCardCreditFlow &&
+            _method == PaymentMethod.credit &&
+            installmentCount > 1;
+        if (isNewCardInstallmentFlow) {
+          final List<String> rowDescriptions = List<String>.generate(
+            installmentCount,
+            (int i) => l.addCardExpenseInstallmentLineDescription(
+              _description.text.trim(),
+              i + 1,
+              installmentCount,
+            ),
+          );
+          await repo.insertCreditCardInstallmentExpensePlan(
+            totalAmountInCents: cents,
+            installmentCount: installmentCount,
+            category: _category.text.trim(),
+            rowDescriptions: rowDescriptions,
+            firstPurchaseDate: dateForRepo,
+            cardId: cardId!,
+          );
+        } else {
+          await repo.insertFinanceTransaction(
+            amountInCents: cents,
+            transactionType: _type,
+            category: _category.text.trim(),
+            description: _description.text.trim(),
+            dateUtc: dateForRepo,
+            paymentMethod: _method,
+            accountId: _needsAccount() ? accountId : null,
+            cardId: _needsCard() ? cardId : null,
+          );
+        }
       } else {
         await repo.updateFinanceTransaction(
           id: widget.transactionId!,
@@ -428,6 +473,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       return null;
                     },
                   ),
+                  if (widget.forceCardCreditFlow && !isEdit) ...<Widget>[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _installments,
+                      decoration: InputDecoration(
+                        labelText: l.addCardExpenseInstallmentsLabel,
+                        hintText: '1',
+                        helperText: l.addCardExpenseInstallmentsHint,
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (String? v) {
+                        final int n = _parseInstallmentCount();
+                        if (n < 1 || n > _maxInstallments) {
+                          return l.validationInstallmentsRange;
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _category,

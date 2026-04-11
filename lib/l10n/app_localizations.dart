@@ -496,6 +496,34 @@ abstract class AppLocalizations {
   /// **'Valor (R\$)'**
   String get addTransactionAmountLabel;
 
+  /// No description provided for @addCardExpenseInstallmentsLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parcelas'**
+  String get addCardExpenseInstallmentsLabel;
+
+  /// No description provided for @addCardExpenseInstallmentsHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'O valor acima é o total; divide em parcelas iguais (1 = à vista).'**
+  String get addCardExpenseInstallmentsHint;
+
+  /// No description provided for @addCardExpenseInstallmentLineDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'{base} · Parcela {current} de {total}'**
+  String addCardExpenseInstallmentLineDescription(
+    String base,
+    int current,
+    int total,
+  );
+
+  /// No description provided for @validationInstallmentsRange.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe um número de parcelas entre 1 e 60.'**
+  String get validationInstallmentsRange;
+
   /// No description provided for @addTransactionCategoryLabel.
   ///
   /// In pt, this message translates to:

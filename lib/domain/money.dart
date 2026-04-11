@@ -30,12 +30,27 @@ final class Money {
 
   /// Parses a user amount in reais.
   ///
-  /// Accepts comma or dot as decimal separator. Truncates toward zero like
+  /// When the input has no comma or dot, it is treated as an integer number of
+  /// centavos (e.g. `1050` → R\$ 10,50), matching common keypad-style entry.
+  ///
+  /// When a comma or dot is present, the value is parsed as reais with an
+  /// optional fractional part. Truncates extra fraction digits toward zero like
   /// `(BigDecimal * 100).toLong()` in the domain reference.
   static Money parseReais(String raw) {
     final String trimmed = raw.trim();
     if (trimmed.isEmpty) {
       throw const FormatException('Empty money string');
+    }
+    final bool hasExplicitSeparator =
+        trimmed.contains(',') || trimmed.contains('.');
+    if (!hasExplicitSeparator) {
+      final String unsignedDigits = trimmed.startsWith('-')
+          ? trimmed.substring(1)
+          : trimmed;
+      if (unsignedDigits.isNotEmpty &&
+          _digitsOnly.hasMatch(unsignedDigits)) {
+        return Money(int.parse(trimmed));
+      }
     }
     final String normalized = trimmed.replaceAll(',', '.');
     if (!_normalizedPattern.hasMatch(normalized)) {

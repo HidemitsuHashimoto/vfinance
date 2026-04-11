@@ -248,6 +248,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get addTransactionAmountLabel => 'Valor (R\$)';
 
   @override
+  String get addCardExpenseInstallmentsLabel => 'Parcelas';
+
+  @override
+  String get addCardExpenseInstallmentsHint =>
+      'O valor acima é o total; divide em parcelas iguais (1 = à vista).';
+
+  @override
+  String addCardExpenseInstallmentLineDescription(
+    String base,
+    int current,
+    int total,
+  ) {
+    return '$base · Parcela $current de $total';
+  }
+
+  @override
+  String get validationInstallmentsRange =>
+      'Informe um número de parcelas entre 1 e 60.';
+
+  @override
   String get addTransactionCategoryLabel => 'Categoria';
 
   @override

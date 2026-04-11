@@ -4,6 +4,7 @@ import 'package:vfinance/domain/balance_rules.dart';
 import 'package:vfinance/domain/delete_blocked_exceptions.dart';
 import 'package:vfinance/domain/finance_calendar_date.dart';
 import 'package:vfinance/domain/finance_transaction_scope.dart';
+import 'package:vfinance/domain/installment_rules.dart';
 import 'package:vfinance/domain/invoice_rules.dart';
 import 'package:vfinance/domain/transaction_enums.dart';
 import 'package:vfinance/domain/year_backup_filter.dart';
@@ -241,6 +242,69 @@ class FinanceLocalRepository {
       );
       await _recomputeAllCreditInvoiceTotals();
       return rowId;
+    });
+  }
+
+  /// Inserts [installmentCount] credit-card expense rows for one purchase:
+  /// [totalAmountInCents] is split across installments; dates advance by
+  /// calendar month from [firstPurchaseDate]. All rows share the same
+  /// [installmentId] (the autoincrement id of the first row).
+  ///
+  /// [rowDescriptions] must have length [installmentCount].
+  Future<List<int>> insertCreditCardInstallmentExpensePlan({
+    required int totalAmountInCents,
+    required int installmentCount,
+    required String category,
+    required List<String> rowDescriptions,
+    required DateTime firstPurchaseDate,
+    required int cardId,
+  }) {
+    if (rowDescriptions.length != installmentCount) {
+      throw ArgumentError(
+        'rowDescriptions.length (${rowDescriptions.length}) '
+        'must equal installmentCount ($installmentCount)',
+      );
+    }
+    return _db.transaction(() async {
+      final List<PlannedCreditInstallmentCharge> plan =
+          planCreditInstallmentCharges(
+            installmentGroupId: 0,
+            totalAmountInCents: totalAmountInCents,
+            installmentCount: installmentCount,
+            firstPurchaseDate: firstPurchaseDate,
+          );
+      final List<int> ids = <int>[];
+      int? installmentGroupId;
+      for (int i = 0; i < plan.length; i++) {
+        final PlannedCreditInstallmentCharge c = plan[i];
+        final int rowId = await _db
+            .into(_db.financeTransactions)
+            .insert(
+              FinanceTransactionsCompanion.insert(
+                amountInCents: c.amountInCents,
+                transactionType: TransactionType.expense.storageName,
+                category: category,
+                description: rowDescriptions[i],
+                dateUtcMillis: c.purchaseDate.millisecondsSinceEpoch,
+                paymentMethod: PaymentMethod.credit.storageName,
+                cardId: Value<int>(cardId),
+                installmentId: Value<int?>(installmentGroupId),
+              ),
+            );
+        ids.add(rowId);
+        if (i == 0) {
+          installmentGroupId = rowId;
+          await (_db.update(
+            _db.financeTransactions,
+          )..where((t) => t.id.equals(rowId))).write(
+            FinanceTransactionsCompanion(
+              installmentId: Value<int?>(installmentGroupId),
+            ),
+          );
+        }
+      }
+      await _recomputeAllCreditInvoiceTotals();
+      return ids;
     });
   }
 
