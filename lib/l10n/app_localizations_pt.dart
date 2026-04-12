@@ -184,6 +184,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cardsAdjustedField => 'Total ajustado (opcional, R\$)';
 
   @override
+  String get cardsFilterTooltip => 'Filtrar por mês e ano do ciclo';
+
+  @override
+  String get cardsFilterDialogTitle => 'Mês e ano do ciclo';
+
+  @override
+  String get cardsFilterApply => 'Aplicar';
+
+  @override
+  String get cardsMonthPickerLabel => 'Mês';
+
+  @override
+  String get cardsNoInvoiceInSelectedMonth =>
+      'Nenhuma fatura neste mês de ciclo';
+
+  @override
   String get transactionsTitle => 'Lançamentos';
 
   @override

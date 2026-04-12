@@ -370,6 +370,36 @@ abstract class AppLocalizations {
   /// **'Total ajustado (opcional, R\$)'**
   String get cardsAdjustedField;
 
+  /// No description provided for @cardsFilterTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filtrar por mês e ano do ciclo'**
+  String get cardsFilterTooltip;
+
+  /// No description provided for @cardsFilterDialogTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mês e ano do ciclo'**
+  String get cardsFilterDialogTitle;
+
+  /// No description provided for @cardsFilterApply.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aplicar'**
+  String get cardsFilterApply;
+
+  /// No description provided for @cardsMonthPickerLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mês'**
+  String get cardsMonthPickerLabel;
+
+  /// No description provided for @cardsNoInvoiceInSelectedMonth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma fatura neste mês de ciclo'**
+  String get cardsNoInvoiceInSelectedMonth;
+
   /// No description provided for @transactionsTitle.
   ///
   /// In pt, this message translates to:

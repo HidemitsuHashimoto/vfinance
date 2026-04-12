@@ -28,6 +28,9 @@ class _CardsScreenState extends State<CardsScreen> {
   late Stream<List<FinanceTransaction>> _transactionsStream;
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
+  /// Cycle month (invoice year/month) shown in lists and the month navigator.
+  DateTime _cycleFilter = DateTime(DateTime.now().year, DateTime.now().month);
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -141,157 +144,319 @@ class _CardsScreenState extends State<CardsScreen> {
     return cycle.year == invoice.year && cycle.month == invoice.month;
   }
 
+  String _cycleFilterDisplayLabel(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
+    return DateFormat.yMMMM(locale.toLanguageTag()).format(_cycleFilter);
+  }
+
+  void _shiftCycleFilterMonth(int monthDelta) {
+    setState(() {
+      _cycleFilter = DateTime(
+        _cycleFilter.year,
+        _cycleFilter.month + monthDelta,
+      );
+    });
+  }
+
+  List<int> _cycleYearPickerValues(int selectedYear) {
+    final int nowYear = DateTime.now().year;
+    const int spanPast = 12;
+    const int spanFuture = 6;
+    final List<int> years = <int>[
+      for (int y = nowYear - spanPast; y <= nowYear + spanFuture; y++) y,
+    ];
+    if (!years.contains(selectedYear)) {
+      years.add(selectedYear);
+      years.sort();
+    }
+    return years;
+  }
+
+  Future<void> _showCycleMonthFilterDialog(BuildContext context) async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
+    final Locale locale = Localizations.localeOf(context);
+    final String monthNameLocale = locale.toLanguageTag();
+    int selectedMonth = _cycleFilter.month;
+    int selectedYear = _cycleFilter.year;
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder:
+              (
+                BuildContext ctx,
+                void Function(void Function()) setDialogState,
+              ) {
+                final List<int> yearItems = _cycleYearPickerValues(
+                  selectedYear,
+                );
+                return AlertDialog(
+                  title: Text(l.cardsFilterDialogTitle),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        DropdownButtonFormField<int>(
+                          key: ValueKey<int>(selectedMonth),
+                          initialValue: selectedMonth,
+                          decoration: InputDecoration(
+                            labelText: l.cardsMonthPickerLabel,
+                          ),
+                          items: List<DropdownMenuItem<int>>.generate(12, (
+                            int index,
+                          ) {
+                            final int month = index + 1;
+                            final String label = DateFormat.MMMM(
+                              monthNameLocale,
+                            ).format(DateTime(2000, month));
+                            return DropdownMenuItem<int>(
+                              value: month,
+                              child: Text(label),
+                            );
+                          }),
+                          onChanged: (int? value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setDialogState(() => selectedMonth = value);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<int>(
+                          key: ValueKey<int>(selectedYear),
+                          initialValue: selectedYear,
+                          decoration: InputDecoration(
+                            labelText: l.cardsYearField,
+                          ),
+                          items: yearItems.map((int y) {
+                            return DropdownMenuItem<int>(
+                              value: y,
+                              child: Text('$y'),
+                            );
+                          }).toList(),
+                          onChanged: (int? value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setDialogState(() => selectedYear = value);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: Text(l.commonCancel),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        setState(() {
+                          _cycleFilter = DateTime(selectedYear, selectedMonth);
+                        });
+                        Navigator.pop(dialogContext);
+                      },
+                      child: Text(l.cardsFilterApply),
+                    ),
+                  ],
+                );
+              },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l.cardsTitle)),
+      appBar: AppBar(
+        title: Text(l.cardsTitle),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            tooltip: l.cardsFilterTooltip,
+            onPressed: () => _showCycleMonthFilterDialog(context),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_cards',
         onPressed: () => context.push('/cards/add'),
         child: const Icon(Icons.add),
       ),
-      body: StreamBuilder<List<CreditCard>>(
-        stream: _creditCardsStream,
-        builder: (BuildContext context, AsyncSnapshot<List<CreditCard>> sC) {
-          if (sC.hasError) {
-            return Center(child: Text('${sC.error}'));
-          }
-          final List<CreditCard> cards = sC.data ?? <CreditCard>[];
-          return StreamBuilder<List<Invoice>>(
-            stream: _invoicesStream,
-            builder: (BuildContext context, AsyncSnapshot<List<Invoice>> sI) {
-              if (sI.hasError) {
-                return Center(child: Text('${sI.error}'));
-              }
-              final List<Invoice> invoices = sI.data ?? <Invoice>[];
-              return StreamBuilder<List<FinanceTransaction>>(
-                stream: _transactionsStream,
-                builder:
-                    (
-                      BuildContext context,
-                      AsyncSnapshot<List<FinanceTransaction>> sT,
-                    ) {
-                      if (sT.hasError) {
-                        return Center(child: Text('${sT.error}'));
-                      }
-                      final List<FinanceTransaction> allTx =
-                          sT.data ?? <FinanceTransaction>[];
-                      if (cards.isEmpty) {
-                        return Center(child: Text(l.cardsEmpty));
-                      }
-                      final Map<int, List<Invoice>> invoicesByCardId =
-                          <int, List<Invoice>>{};
-                      for (final Invoice inv in invoices) {
-                        invoicesByCardId
-                            .putIfAbsent(inv.cardId, () => <Invoice>[])
-                            .add(inv);
-                      }
-                      for (final List<Invoice> list
-                          in invoicesByCardId.values) {
-                        list.sort((Invoice a, Invoice b) {
-                          final int y = b.year.compareTo(a.year);
-                          if (y != 0) {
-                            return y;
-                          }
-                          return b.month.compareTo(a.month);
-                        });
-                      }
-                      return ListView.builder(
-                        itemCount: cards.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final CreditCard c = cards[index];
-                          final List<Invoice> forCard =
-                              invoicesByCardId[c.id] ?? const <Invoice>[];
-                          return ExpansionTile(
-                            key: ValueKey<int>(c.id),
-                            leading: const Icon(Icons.credit_card),
-                            title: Row(
-                              children: <Widget>[
-                                Expanded(child: Text(c.name)),
-                                PopupMenuButton<String>(
-                                  onSelected: (String value) {
-                                    if (value == 'edit') {
-                                      context.push('/cards/edit/${c.id}');
-                                    }
-                                    if (value == 'delete') {
-                                      _confirmDeleteCard(context, c);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext ctx) =>
-                                      <PopupMenuEntry<String>>[
-                                        PopupMenuItem<String>(
-                                          value: 'edit',
-                                          child: Text(l.menuEdit),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _CardsCycleMonthBar(
+            label: _cycleFilterDisplayLabel(context),
+            onPrevious: () => _shiftCycleFilterMonth(-1),
+            onNext: () => _shiftCycleFilterMonth(1),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: StreamBuilder<List<CreditCard>>(
+              stream: _creditCardsStream,
+              builder: (BuildContext context, AsyncSnapshot<List<CreditCard>> sC) {
+                if (sC.hasError) {
+                  return Center(child: Text('${sC.error}'));
+                }
+                final List<CreditCard> cards = sC.data ?? <CreditCard>[];
+                return StreamBuilder<List<Invoice>>(
+                  stream: _invoicesStream,
+                  builder: (BuildContext context, AsyncSnapshot<List<Invoice>> sI) {
+                    if (sI.hasError) {
+                      return Center(child: Text('${sI.error}'));
+                    }
+                    final List<Invoice> invoices = sI.data ?? <Invoice>[];
+                    return StreamBuilder<List<FinanceTransaction>>(
+                      stream: _transactionsStream,
+                      builder:
+                          (
+                            BuildContext context,
+                            AsyncSnapshot<List<FinanceTransaction>> sT,
+                          ) {
+                            if (sT.hasError) {
+                              return Center(child: Text('${sT.error}'));
+                            }
+                            final List<FinanceTransaction> allTx =
+                                sT.data ?? <FinanceTransaction>[];
+                            if (cards.isEmpty) {
+                              return Center(child: Text(l.cardsEmpty));
+                            }
+                            final Map<int, List<Invoice>> invoicesByCardId =
+                                <int, List<Invoice>>{};
+                            for (final Invoice inv in invoices) {
+                              invoicesByCardId
+                                  .putIfAbsent(inv.cardId, () => <Invoice>[])
+                                  .add(inv);
+                            }
+                            for (final List<Invoice> list
+                                in invoicesByCardId.values) {
+                              list.sort((Invoice a, Invoice b) {
+                                final int y = b.year.compareTo(a.year);
+                                if (y != 0) {
+                                  return y;
+                                }
+                                return b.month.compareTo(a.month);
+                              });
+                            }
+                            return ListView.builder(
+                              itemCount: cards.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final CreditCard c = cards[index];
+                                final List<Invoice> forCardAll =
+                                    invoicesByCardId[c.id] ?? const <Invoice>[];
+                                final List<Invoice> forCard = forCardAll
+                                    .where(
+                                      (Invoice inv) =>
+                                          inv.year == _cycleFilter.year &&
+                                          inv.month == _cycleFilter.month,
+                                    )
+                                    .toList();
+                                return ExpansionTile(
+                                  key: ValueKey<int>(c.id),
+                                  leading: const Icon(Icons.credit_card),
+                                  title: Row(
+                                    children: <Widget>[
+                                      Expanded(child: Text(c.name)),
+                                      PopupMenuButton<String>(
+                                        onSelected: (String value) {
+                                          if (value == 'edit') {
+                                            context.push('/cards/edit/${c.id}');
+                                          }
+                                          if (value == 'delete') {
+                                            _confirmDeleteCard(context, c);
+                                          }
+                                        },
+                                        itemBuilder: (BuildContext ctx) =>
+                                            <PopupMenuEntry<String>>[
+                                              PopupMenuItem<String>(
+                                                value: 'edit',
+                                                child: Text(l.menuEdit),
+                                              ),
+                                              PopupMenuItem<String>(
+                                                value: 'delete',
+                                                child: Text(l.menuDelete),
+                                              ),
+                                            ],
+                                      ),
+                                    ],
+                                  ),
+                                  subtitle: Text(
+                                    '${l.cardsClosesOn(c.closingDay)} · '
+                                    '${l.cardsDueOn(c.dueDay)} · '
+                                    '${l.cardsLimit(formatCents(c.limitInCents))}',
+                                  ),
+                                  children: <Widget>[
+                                    Wrap(
+                                      alignment: WrapAlignment.end,
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      children: <Widget>[
+                                        TextButton.icon(
+                                          onPressed: () => context.push(
+                                            '/cards/${c.id}/add-expense',
+                                          ),
+                                          icon: const Icon(
+                                            Icons.add_shopping_cart_outlined,
+                                          ),
+                                          label: Text(l.cardsNewExpense),
                                         ),
-                                        PopupMenuItem<String>(
-                                          value: 'delete',
-                                          child: Text(l.menuDelete),
+                                        TextButton.icon(
+                                          onPressed: () => _openAdjustInvoice(
+                                            context,
+                                            repository: VfinanceScope.of(
+                                              context,
+                                            ),
+                                            cardId: c.id,
+                                          ),
+                                          icon: const Icon(Icons.tune_outlined),
+                                          label: Text(l.cardsAdjustInvoice),
                                         ),
                                       ],
-                                ),
-                              ],
-                            ),
-                            subtitle: Text(
-                              '${l.cardsClosesOn(c.closingDay)} · '
-                              '${l.cardsDueOn(c.dueDay)} · '
-                              '${l.cardsLimit(formatCents(c.limitInCents))}',
-                            ),
-                            children: <Widget>[
-                              Wrap(
-                                alignment: WrapAlignment.end,
-                                spacing: 8,
-                                runSpacing: 4,
-                                children: <Widget>[
-                                  TextButton.icon(
-                                    onPressed: () => context.push(
-                                      '/cards/${c.id}/add-expense',
                                     ),
-                                    icon: const Icon(
-                                      Icons.add_shopping_cart_outlined,
-                                    ),
-                                    label: Text(l.cardsNewExpense),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: () => _openAdjustInvoice(
-                                      context,
-                                      repository: VfinanceScope.of(context),
-                                      cardId: c.id,
-                                    ),
-                                    icon: const Icon(Icons.tune_outlined),
-                                    label: Text(l.cardsAdjustInvoice),
-                                  ),
-                                ],
-                              ),
-                              if (forCard.isEmpty)
-                                ListTile(title: Text(l.cardsNoInvoices))
-                              else
-                                ...forCard.map(
-                                  (Invoice i) => _InvoiceCycleTile(
-                                    card: c,
-                                    invoice: i,
-                                    allTransactions: allTx,
-                                    dateFormat: _dateFormat,
-                                    belongs: _transactionBelongsToInvoice,
-                                    onEdit: (FinanceTransaction t) {
-                                      context.push(
-                                        '/cards/expense/edit/${t.id}',
-                                      );
-                                    },
-                                    onDelete: (FinanceTransaction t) {
-                                      _confirmDeleteCardExpense(context, t);
-                                    },
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-              );
-            },
-          );
-        },
+                                    if (forCardAll.isEmpty)
+                                      ListTile(title: Text(l.cardsNoInvoices))
+                                    else if (forCard.isEmpty)
+                                      ListTile(
+                                        title: Text(
+                                          l.cardsNoInvoiceInSelectedMonth,
+                                        ),
+                                      )
+                                    else
+                                      ...forCard.map(
+                                        (Invoice i) => _InvoiceCycleTile(
+                                          card: c,
+                                          invoice: i,
+                                          allTransactions: allTx,
+                                          dateFormat: _dateFormat,
+                                          belongs: _transactionBelongsToInvoice,
+                                          onEdit: (FinanceTransaction t) {
+                                            context.push(
+                                              '/cards/expense/edit/${t.id}',
+                                            );
+                                          },
+                                          onDelete: (FinanceTransaction t) {
+                                            _confirmDeleteCardExpense(
+                                              context,
+                                              t,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -410,6 +575,50 @@ class _CardsScreenState extends State<CardsScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _CardsCycleMonthBar extends StatelessWidget {
+  const _CardsCycleMonthBar({
+    required this.label,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final String label;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final MaterialLocalizations mats = MaterialLocalizations.of(context);
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              tooltip: mats.previousMonthTooltip,
+              onPressed: onPrevious,
+            ),
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              tooltip: mats.nextMonthTooltip,
+              onPressed: onNext,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
