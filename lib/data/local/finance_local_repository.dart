@@ -578,6 +578,22 @@ class FinanceLocalRepository {
   /// Emits invoices newest by year/month.
   Stream<List<Invoice>> watchInvoices() => _watchInvoices;
 
+  /// Credit-card expense rows for [cardId] only (expense + credit payment),
+  /// newest first. Matches [isCardCreditExpenseStorage] for that card.
+  Future<List<FinanceTransaction>> getCreditCardExpenseTransactions(
+    int cardId,
+  ) {
+    return (_db.select(_db.financeTransactions)
+          ..where(
+            (t) =>
+                t.cardId.equals(cardId) &
+                t.transactionType.equals(TransactionType.expense.storageName) &
+                t.paymentMethod.equals(PaymentMethod.credit.storageName),
+          )
+          ..orderBy([(t) => OrderingTerm.desc(t.dateUtcMillis)]))
+        .get();
+  }
+
   /// Builds a JSON backup snapshot for [year] (full accounts/cards + filtered
   /// tx and invoices), matching [importYearBackupSnapshot] expectations.
   Future<YearBackupSnapshot> buildYearBackupForCalendarYear(int year) async {

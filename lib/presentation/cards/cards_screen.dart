@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +27,6 @@ class _CardsScreenState extends State<CardsScreen> {
   FinanceLocalRepository? _repositoryForStreams;
   late Stream<List<CreditCard>> _creditCardsStream;
   late Stream<List<Invoice>> _invoicesStream;
-  late Stream<List<FinanceTransaction>> _transactionsStream;
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
   /// Cycle month (invoice year/month) shown in lists and the month navigator.
@@ -39,7 +40,6 @@ class _CardsScreenState extends State<CardsScreen> {
       _repositoryForStreams = repo;
       _creditCardsStream = repo.watchCreditCards();
       _invoicesStream = repo.watchInvoices();
-      _transactionsStream = repo.watchFinanceTransactions();
     }
   }
 
@@ -83,7 +83,8 @@ class _CardsScreenState extends State<CardsScreen> {
     }
   }
 
-  Future<void> _confirmDeleteCardExpense(
+  /// Returns whether the row was deleted after confirmation.
+  Future<bool> _confirmDeleteCardExpense(
     BuildContext context,
     FinanceTransaction row,
   ) async {
@@ -106,18 +107,43 @@ class _CardsScreenState extends State<CardsScreen> {
       ),
     );
     if (ok != true || !context.mounted) {
-      return;
+      return false;
     }
     final FinanceLocalRepository repo = VfinanceScope.of(context);
     try {
       await repo.deleteFinanceTransaction(row.id);
+      return true;
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(l.errorWithMessage('$e'))));
       }
+      return false;
     }
+  }
+
+  Future<void> _openCardExpensesDialog({
+    required BuildContext hostContext,
+    required CreditCard card,
+    required List<Invoice> forCardAll,
+    required List<Invoice> forCard,
+    required FinanceLocalRepository repository,
+  }) async {
+    await showDialog<void>(
+      context: hostContext,
+      builder: (BuildContext dialogContext) {
+        return _CardExpensesDialog(
+          card: card,
+          forCardAll: forCardAll,
+          forCard: forCard,
+          repository: repository,
+          dateFormat: _dateFormat,
+          belongs: _transactionBelongsToInvoice,
+          confirmDeleteCardExpense: _confirmDeleteCardExpense,
+        );
+      },
+    );
   }
 
   bool _transactionBelongsToInvoice({
@@ -304,154 +330,89 @@ class _CardsScreenState extends State<CardsScreen> {
                 final List<CreditCard> cards = sC.data ?? <CreditCard>[];
                 return StreamBuilder<List<Invoice>>(
                   stream: _invoicesStream,
-                  builder: (BuildContext context, AsyncSnapshot<List<Invoice>> sI) {
-                    if (sI.hasError) {
-                      return Center(child: Text('${sI.error}'));
-                    }
-                    final List<Invoice> invoices = sI.data ?? <Invoice>[];
-                    return StreamBuilder<List<FinanceTransaction>>(
-                      stream: _transactionsStream,
-                      builder:
-                          (
-                            BuildContext context,
-                            AsyncSnapshot<List<FinanceTransaction>> sT,
-                          ) {
-                            if (sT.hasError) {
-                              return Center(child: Text('${sT.error}'));
+                  builder:
+                      (BuildContext context, AsyncSnapshot<List<Invoice>> sI) {
+                        if (sI.hasError) {
+                          return Center(child: Text('${sI.error}'));
+                        }
+                        final List<Invoice> invoices = sI.data ?? <Invoice>[];
+                        if (cards.isEmpty) {
+                          return Center(child: Text(l.cardsEmpty));
+                        }
+                        final Map<int, List<Invoice>> invoicesByCardId =
+                            <int, List<Invoice>>{};
+                        for (final Invoice inv in invoices) {
+                          invoicesByCardId
+                              .putIfAbsent(inv.cardId, () => <Invoice>[])
+                              .add(inv);
+                        }
+                        for (final List<Invoice> list
+                            in invoicesByCardId.values) {
+                          list.sort((Invoice a, Invoice b) {
+                            final int y = b.year.compareTo(a.year);
+                            if (y != 0) {
+                              return y;
                             }
-                            final List<FinanceTransaction> allTx =
-                                sT.data ?? <FinanceTransaction>[];
-                            if (cards.isEmpty) {
-                              return Center(child: Text(l.cardsEmpty));
-                            }
-                            final Map<int, List<Invoice>> invoicesByCardId =
-                                <int, List<Invoice>>{};
-                            for (final Invoice inv in invoices) {
-                              invoicesByCardId
-                                  .putIfAbsent(inv.cardId, () => <Invoice>[])
-                                  .add(inv);
-                            }
-                            for (final List<Invoice> list
-                                in invoicesByCardId.values) {
-                              list.sort((Invoice a, Invoice b) {
-                                final int y = b.year.compareTo(a.year);
-                                if (y != 0) {
-                                  return y;
-                                }
-                                return b.month.compareTo(a.month);
-                              });
-                            }
-                            return ListView.builder(
-                              itemCount: cards.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final CreditCard c = cards[index];
-                                final List<Invoice> forCardAll =
-                                    invoicesByCardId[c.id] ?? const <Invoice>[];
-                                final List<Invoice> forCard = forCardAll
-                                    .where(
-                                      (Invoice inv) =>
-                                          inv.year == _cycleFilter.year &&
-                                          inv.month == _cycleFilter.month,
-                                    )
-                                    .toList();
-                                return ExpansionTile(
-                                  key: ValueKey<int>(c.id),
-                                  leading: const Icon(Icons.credit_card),
-                                  title: Row(
-                                    children: <Widget>[
-                                      Expanded(child: Text(c.name)),
-                                      PopupMenuButton<String>(
-                                        onSelected: (String value) {
-                                          if (value == 'edit') {
-                                            context.push('/cards/edit/${c.id}');
-                                          }
-                                          if (value == 'delete') {
-                                            _confirmDeleteCard(context, c);
-                                          }
-                                        },
-                                        itemBuilder: (BuildContext ctx) =>
-                                            <PopupMenuEntry<String>>[
-                                              PopupMenuItem<String>(
-                                                value: 'edit',
-                                                child: Text(l.menuEdit),
-                                              ),
-                                              PopupMenuItem<String>(
-                                                value: 'delete',
-                                                child: Text(l.menuDelete),
-                                              ),
-                                            ],
+                            return b.month.compareTo(a.month);
+                          });
+                        }
+                        final FinanceLocalRepository repo = VfinanceScope.of(
+                          context,
+                        );
+                        return ListView.builder(
+                          itemCount: cards.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final CreditCard c = cards[index];
+                            final List<Invoice> forCardAll =
+                                invoicesByCardId[c.id] ?? const <Invoice>[];
+                            final List<Invoice> forCard = forCardAll
+                                .where(
+                                  (Invoice inv) =>
+                                      inv.year == _cycleFilter.year &&
+                                      inv.month == _cycleFilter.month,
+                                )
+                                .toList();
+                            return ListTile(
+                              key: ValueKey<int>(c.id),
+                              leading: const Icon(Icons.credit_card),
+                              title: Text(c.name),
+                              subtitle: Text(
+                                '${l.cardsClosesOn(c.closingDay)} · '
+                                '${l.cardsDueOn(c.dueDay)} · '
+                                '${l.cardsLimit(formatCents(c.limitInCents))}',
+                              ),
+                              trailing: PopupMenuButton<String>(
+                                onSelected: (String value) {
+                                  if (value == 'edit') {
+                                    context.push('/cards/edit/${c.id}');
+                                  }
+                                  if (value == 'delete') {
+                                    _confirmDeleteCard(context, c);
+                                  }
+                                },
+                                itemBuilder: (BuildContext ctx) =>
+                                    <PopupMenuEntry<String>>[
+                                      PopupMenuItem<String>(
+                                        value: 'edit',
+                                        child: Text(l.menuEdit),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Text(l.menuDelete),
                                       ),
                                     ],
-                                  ),
-                                  subtitle: Text(
-                                    '${l.cardsClosesOn(c.closingDay)} · '
-                                    '${l.cardsDueOn(c.dueDay)} · '
-                                    '${l.cardsLimit(formatCents(c.limitInCents))}',
-                                  ),
-                                  children: <Widget>[
-                                    Wrap(
-                                      alignment: WrapAlignment.end,
-                                      spacing: 8,
-                                      runSpacing: 4,
-                                      children: <Widget>[
-                                        TextButton.icon(
-                                          onPressed: () => context.push(
-                                            '/cards/${c.id}/add-expense',
-                                          ),
-                                          icon: const Icon(
-                                            Icons.add_shopping_cart_outlined,
-                                          ),
-                                          label: Text(l.cardsNewExpense),
-                                        ),
-                                        TextButton.icon(
-                                          onPressed: () => _openAdjustInvoice(
-                                            context,
-                                            repository: VfinanceScope.of(
-                                              context,
-                                            ),
-                                            cardId: c.id,
-                                          ),
-                                          icon: const Icon(Icons.tune_outlined),
-                                          label: Text(l.cardsAdjustInvoice),
-                                        ),
-                                      ],
-                                    ),
-                                    if (forCardAll.isEmpty)
-                                      ListTile(title: Text(l.cardsNoInvoices))
-                                    else if (forCard.isEmpty)
-                                      ListTile(
-                                        title: Text(
-                                          l.cardsNoInvoiceInSelectedMonth,
-                                        ),
-                                      )
-                                    else
-                                      ...forCard.map(
-                                        (Invoice i) => _InvoiceCycleTile(
-                                          card: c,
-                                          invoice: i,
-                                          allTransactions: allTx,
-                                          dateFormat: _dateFormat,
-                                          belongs: _transactionBelongsToInvoice,
-                                          onEdit: (FinanceTransaction t) {
-                                            context.push(
-                                              '/cards/expense/edit/${t.id}',
-                                            );
-                                          },
-                                          onDelete: (FinanceTransaction t) {
-                                            _confirmDeleteCardExpense(
-                                              context,
-                                              t,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                );
-                              },
+                              ),
+                              onTap: () => _openCardExpensesDialog(
+                                hostContext: context,
+                                card: c,
+                                forCardAll: forCardAll,
+                                forCard: forCard,
+                                repository: repo,
+                              ),
                             );
                           },
-                    );
-                  },
+                        );
+                      },
                 );
               },
             ),
@@ -575,6 +536,188 @@ class _CardsScreenState extends State<CardsScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _CardExpensesDialog extends StatefulWidget {
+  const _CardExpensesDialog({
+    required this.card,
+    required this.forCardAll,
+    required this.forCard,
+    required this.repository,
+    required this.dateFormat,
+    required this.belongs,
+    required this.confirmDeleteCardExpense,
+  });
+
+  final CreditCard card;
+  final List<Invoice> forCardAll;
+  final List<Invoice> forCard;
+  final FinanceLocalRepository repository;
+  final DateFormat dateFormat;
+  final bool Function({
+    required FinanceTransaction transaction,
+    required CreditCard card,
+    required Invoice invoice,
+  })
+  belongs;
+  final Future<bool> Function(BuildContext context, FinanceTransaction row)
+  confirmDeleteCardExpense;
+
+  @override
+  State<_CardExpensesDialog> createState() => _CardExpensesDialogState();
+}
+
+class _CardExpensesDialogState extends State<_CardExpensesDialog> {
+  late Future<List<FinanceTransaction>> _transactionsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _transactionsFuture = widget.repository.getCreditCardExpenseTransactions(
+      widget.card.id,
+    );
+  }
+
+  void _reloadTransactions() {
+    setState(() {
+      _transactionsFuture = widget.repository.getCreditCardExpenseTransactions(
+        widget.card.id,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context)!;
+    final double maxW = min(MediaQuery.sizeOf(context).width - 32, 560);
+    final double maxH = min(MediaQuery.sizeOf(context).height * 0.85, 640);
+    return Dialog(
+      child: SizedBox(
+        width: maxW,
+        height: maxH,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 4, 0),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      widget.card.name,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 4,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: () async {
+                      await context.push(
+                        '/cards/${widget.card.id}/add-expense',
+                      );
+                      if (context.mounted) {
+                        _reloadTransactions();
+                      }
+                    },
+                    icon: const Icon(Icons.add_shopping_cart_outlined),
+                    label: Text(l.cardsNewExpense),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      await _CardsScreenState._openAdjustInvoice(
+                        context,
+                        repository: widget.repository,
+                        cardId: widget.card.id,
+                      );
+                      if (context.mounted) {
+                        _reloadTransactions();
+                      }
+                    },
+                    icon: const Icon(Icons.tune_outlined),
+                    label: Text(l.cardsAdjustInvoice),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<List<FinanceTransaction>>(
+                future: _transactionsFuture,
+                builder:
+                    (
+                      BuildContext context,
+                      AsyncSnapshot<List<FinanceTransaction>> snapshot,
+                    ) {
+                      if (snapshot.hasError) {
+                        return Center(child: Text('${snapshot.error}'));
+                      }
+                      if (snapshot.connectionState == ConnectionState.waiting &&
+                          !snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final List<FinanceTransaction> allTx =
+                          snapshot.data ?? <FinanceTransaction>[];
+                      return ListView(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        children: <Widget>[
+                          if (widget.forCardAll.isEmpty)
+                            ListTile(title: Text(l.cardsNoInvoices))
+                          else if (widget.forCard.isEmpty)
+                            ListTile(
+                              title: Text(l.cardsNoInvoiceInSelectedMonth),
+                            )
+                          else
+                            ...widget.forCard.map(
+                              (Invoice i) => _InvoiceCycleTile(
+                                card: widget.card,
+                                invoice: i,
+                                allTransactions: allTx,
+                                dateFormat: widget.dateFormat,
+                                belongs: widget.belongs,
+                                onEdit: (FinanceTransaction t) {
+                                  context
+                                      .push<void>('/cards/expense/edit/${t.id}')
+                                      .then((void _) {
+                                        if (mounted) {
+                                          _reloadTransactions();
+                                        }
+                                      });
+                                },
+                                onDelete: (FinanceTransaction t) {
+                                  widget
+                                      .confirmDeleteCardExpense(context, t)
+                                      .then((bool deleted) {
+                                        if (deleted && mounted) {
+                                          _reloadTransactions();
+                                        }
+                                      });
+                                },
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

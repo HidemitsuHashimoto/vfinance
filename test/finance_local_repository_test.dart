@@ -230,11 +230,92 @@ void main() {
       paymentMethod: PaymentMethod.credit,
       cardId: cardId,
     );
-    final List<FinanceTransaction> ledger =
-        await repo.watchLedgerFinanceTransactions().first;
+    final List<FinanceTransaction> ledger = await repo
+        .watchLedgerFinanceTransactions()
+        .first;
     expect(ledger, hasLength(1));
     expect(ledger.single.description, 'a');
   });
+
+  test(
+    'getCreditCardExpenseTransactions returns only expense credit for card',
+    () async {
+      final AppDatabase db = AppDatabase.memory();
+      addTearDown(db.close);
+      final FinanceLocalRepository repo = FinanceLocalRepository(db);
+      final int accountId = await repo.insertAccount(
+        name: 'Conta',
+        type: 'checking',
+        balanceInCents: 10_000,
+      );
+      final int cardA = await repo.insertCreditCard(
+        name: 'A',
+        limitInCents: 1_000_000,
+        closingDay: 10,
+        dueDay: 15,
+      );
+      final int cardB = await repo.insertCreditCard(
+        name: 'B',
+        limitInCents: 1_000_000,
+        closingDay: 12,
+        dueDay: 18,
+      );
+      await repo.insertFinanceTransaction(
+        amountInCents: 100,
+        transactionType: TransactionType.expense,
+        category: 'c',
+        description: 'cardA-newer',
+        dateUtc: DateTime(2026, 3, 15),
+        paymentMethod: PaymentMethod.credit,
+        cardId: cardA,
+      );
+      await repo.insertFinanceTransaction(
+        amountInCents: 50,
+        transactionType: TransactionType.expense,
+        category: 'c',
+        description: 'cardA-older',
+        dateUtc: DateTime(2026, 2, 1),
+        paymentMethod: PaymentMethod.credit,
+        cardId: cardA,
+      );
+      await repo.insertFinanceTransaction(
+        amountInCents: 200,
+        transactionType: TransactionType.expense,
+        category: 'c',
+        description: 'cardB',
+        dateUtc: DateTime(2026, 3, 6),
+        paymentMethod: PaymentMethod.credit,
+        cardId: cardB,
+      );
+      await repo.insertFinanceTransaction(
+        amountInCents: 300,
+        transactionType: TransactionType.expense,
+        category: 'd',
+        description: 'pix',
+        dateUtc: DateTime.utc(2026, 3, 7),
+        paymentMethod: PaymentMethod.pix,
+        accountId: accountId,
+      );
+      await repo.insertFinanceTransaction(
+        amountInCents: 400,
+        transactionType: TransactionType.income,
+        category: 'i',
+        description: 'cardA-income-credit',
+        dateUtc: DateTime(2026, 3, 8),
+        paymentMethod: PaymentMethod.credit,
+        cardId: cardA,
+      );
+      final List<FinanceTransaction> forA = await repo
+          .getCreditCardExpenseTransactions(cardA);
+      expect(forA, hasLength(2));
+      expect(forA.first.description, 'cardA-newer');
+      expect(forA.last.description, 'cardA-older');
+      final List<FinanceTransaction> forB = await repo
+          .getCreditCardExpenseTransactions(cardB);
+      expect(forB, hasLength(1));
+      expect(forB.single.description, 'cardB');
+    },
+  );
 
   test('deleteAccount throws when transactions reference account', () async {
     final AppDatabase db = AppDatabase.memory();
