@@ -19,18 +19,90 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
+  static const int _defaultRangeInDays = 30;
+
   FinanceLocalRepository? _repositoryForStreams;
   Stream<List<FinanceTransaction>>? _transactionsStream;
   final DateFormat _dayFormat = DateFormat('dd/MM/yyyy');
+  DateTime? _currentDate;
+  DateTime? _periodStartDate;
+  DateTime? _periodEndDate;
+  late DateFormat _currentDateFormat;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final FinanceLocalRepository repo = VfinanceScope.of(context);
+    _currentDateFormat = DateFormat('d \'de\' MMMM', 'pt_BR');
     if (_repositoryForStreams != repo) {
       _repositoryForStreams = repo;
-      _transactionsStream = repo.watchLedgerFinanceTransactions();
+      final DateTime today = _normalizeDate(DateTime.now());
+      _currentDate = today;
+      _periodEndDate = today;
+      _periodStartDate = _normalizeDate(
+        today.subtract(const Duration(days: _defaultRangeInDays)),
+      );
+      _refreshTransactionsStream();
     }
+  }
+
+  DateTime _normalizeDate(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
+
+  DateTime _mustCurrentDate() => _currentDate!;
+  DateTime _mustStartDate() => _periodStartDate!;
+  DateTime _mustEndDate() => _periodEndDate!;
+
+  void _refreshTransactionsStream() {
+    final FinanceLocalRepository? repo = _repositoryForStreams;
+    if (repo == null || _periodStartDate == null || _periodEndDate == null) {
+      return;
+    }
+    _transactionsStream = repo.watchLedgerFinanceTransactionsInPeriod(
+      startLocal: _mustStartDate(),
+      endLocal: _mustEndDate(),
+    );
+  }
+
+  void _moveCurrentDateByDays(int days) {
+    setState(() {
+      final DateTime nextCurrentDate = _normalizeDate(
+        _mustCurrentDate().add(Duration(days: days)),
+      );
+      final Duration periodLength = _mustEndDate().difference(_mustStartDate());
+      _currentDate = nextCurrentDate;
+      _periodEndDate = nextCurrentDate;
+      _periodStartDate = _normalizeDate(nextCurrentDate.subtract(periodLength));
+      _refreshTransactionsStream();
+    });
+  }
+
+  Future<void> _selectPeriodFromFilter() async {
+    final AppLocalizations l = AppLocalizations.of(context)!;
+    final DateTimeRange initialRange = DateTimeRange(
+      start: _mustStartDate(),
+      end: _mustEndDate(),
+    );
+    final DateTime firstDate = DateTime(2000);
+    final DateTime lastDate = DateTime(2100);
+    final DateTimeRange? selectedRange = await showDateRangePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialDateRange: initialRange,
+      helpText: l.transactionsFilterDialogTitle,
+      saveText: l.commonSave,
+    );
+    if (selectedRange == null) {
+      return;
+    }
+    setState(() {
+      _periodStartDate = _normalizeDate(selectedRange.start);
+      _periodEndDate = _normalizeDate(selectedRange.end);
+      _currentDate = _periodEndDate;
+      _refreshTransactionsStream();
+    });
   }
 
   Future<void> _confirmDeleteTransaction(
@@ -74,19 +146,75 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l.transactionsTitle)),
+      appBar: AppBar(
+        title: Text(l.transactionsTitle),
+        actions: <Widget>[
+          IconButton(
+            tooltip: l.transactionsFilterTooltip,
+            onPressed: _selectPeriodFromFilter,
+            icon: const Icon(Icons.filter_alt_outlined),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                    tooltip: l.transactionsPreviousDayTooltip,
+                    onPressed: () => _moveCurrentDateByDays(-1),
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          _currentDateFormat.format(_mustCurrentDate()),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          '${_dayFormat.format(_mustStartDate())} - '
+                          '${_dayFormat.format(_mustEndDate())}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l.transactionsNextDayTooltip,
+                    onPressed: () => _moveCurrentDateByDays(1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_transactions',
         onPressed: () => context.push('/transactions/add'),
         child: const Icon(Icons.add),
       ),
       body: StreamBuilder<List<FinanceTransaction>>(
-        stream: _transactionsStream!,
+        stream: _transactionsStream,
         builder:
             (
               BuildContext context,
               AsyncSnapshot<List<FinanceTransaction>> snap,
             ) {
+              if (!snap.hasData &&
+                  snap.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
               if (snap.hasError) {
                 return Center(child: Text('${snap.error}'));
               }

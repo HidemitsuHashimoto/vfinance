@@ -572,6 +572,56 @@ class FinanceLocalRepository {
     );
   }
 
+  /// Emits postings for **Lançamentos** inside a local inclusive date range.
+  Stream<List<FinanceTransaction>> watchLedgerFinanceTransactionsInPeriod({
+    required DateTime startLocal,
+    required DateTime endLocal,
+  }) {
+    final DateTime normalizedStart = DateTime(
+      startLocal.year,
+      startLocal.month,
+      startLocal.day,
+    );
+    final DateTime normalizedEnd = DateTime(
+      endLocal.year,
+      endLocal.month,
+      endLocal.day,
+    );
+    final DateTime minDate = normalizedStart.isBefore(normalizedEnd)
+        ? normalizedStart
+        : normalizedEnd;
+    final DateTime maxDate = normalizedStart.isBefore(normalizedEnd)
+        ? normalizedEnd
+        : normalizedStart;
+    final int startMillis = minDate.millisecondsSinceEpoch;
+    final int endExclusiveMillis = DateTime(
+      maxDate.year,
+      maxDate.month,
+      maxDate.day + 1,
+    ).millisecondsSinceEpoch;
+    return (_db.select(_db.financeTransactions)
+          ..where(
+            ($FinanceTransactionsTable t) =>
+                t.dateUtcMillis.isBiggerOrEqualValue(startMillis) &
+                t.dateUtcMillis.isSmallerThanValue(endExclusiveMillis),
+          )
+          ..orderBy([
+            ($FinanceTransactionsTable t) => OrderingTerm.desc(t.dateUtcMillis),
+          ]))
+        .watch()
+        .map(
+          (List<FinanceTransaction> rows) => rows
+              .where(
+                (FinanceTransaction t) => !isCardCreditExpenseStorage(
+                  transactionTypeStorage: t.transactionType,
+                  paymentMethodStorage: t.paymentMethod,
+                  cardId: t.cardId,
+                ),
+              )
+              .toList(),
+        );
+  }
+
   /// Emits credit cards ordered by name.
   Stream<List<CreditCard>> watchCreditCards() => _watchCreditCards;
 

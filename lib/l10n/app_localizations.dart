@@ -412,6 +412,30 @@ abstract class AppLocalizations {
   /// **'Nenhum lançamento. Toque em + para adicionar.'**
   String get transactionsEmpty;
 
+  /// No description provided for @transactionsFilterTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filtrar por período'**
+  String get transactionsFilterTooltip;
+
+  /// No description provided for @transactionsFilterDialogTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Período dos lançamentos'**
+  String get transactionsFilterDialogTitle;
+
+  /// No description provided for @transactionsPreviousDayTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dia anterior'**
+  String get transactionsPreviousDayTooltip;
+
+  /// No description provided for @transactionsNextDayTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Próximo dia'**
+  String get transactionsNextDayTooltip;
+
   /// No description provided for @accountsTitle.
   ///
   /// In pt, this message translates to:

@@ -207,6 +207,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum lançamento. Toque em + para adicionar.';
 
   @override
+  String get transactionsFilterTooltip => 'Filtrar por período';
+
+  @override
+  String get transactionsFilterDialogTitle => 'Período dos lançamentos';
+
+  @override
+  String get transactionsPreviousDayTooltip => 'Dia anterior';
+
+  @override
+  String get transactionsNextDayTooltip => 'Próximo dia';
+
+  @override
   String get accountsTitle => 'Contas';
 
   @override

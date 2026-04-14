@@ -300,11 +300,47 @@ class _CardsScreenState extends State<CardsScreen> {
         title: Text(l.cardsTitle),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_alt_outlined),
             tooltip: l.cardsFilterTooltip,
             onPressed: () => _showCycleMonthFilterDialog(context),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).previousMonthTooltip,
+                    onPressed: () => _shiftCycleFilterMonth(-1),
+                  ),
+                  Expanded(
+                    child: Text(
+                      _cycleFilterDisplayLabel(context),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    tooltip: MaterialLocalizations.of(context).nextMonthTooltip,
+                    onPressed: () => _shiftCycleFilterMonth(1),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_cards',
@@ -314,12 +350,6 @@ class _CardsScreenState extends State<CardsScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _CardsCycleMonthBar(
-            label: _cycleFilterDisplayLabel(context),
-            onPrevious: () => _shiftCycleFilterMonth(-1),
-            onNext: () => _shiftCycleFilterMonth(1),
-          ),
-          const Divider(height: 1),
           Expanded(
             child: StreamBuilder<List<CreditCard>>(
               stream: _creditCardsStream,
@@ -714,50 +744,6 @@ class _CardExpensesDialogState extends State<_CardExpensesDialog> {
                       );
                     },
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CardsCycleMonthBar extends StatelessWidget {
-  const _CardsCycleMonthBar({
-    required this.label,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final String label;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final MaterialLocalizations mats = MaterialLocalizations.of(context);
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              tooltip: mats.previousMonthTooltip,
-              onPressed: onPrevious,
-            ),
-            Expanded(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              tooltip: mats.nextMonthTooltip,
-              onPressed: onNext,
             ),
           ],
         ),
